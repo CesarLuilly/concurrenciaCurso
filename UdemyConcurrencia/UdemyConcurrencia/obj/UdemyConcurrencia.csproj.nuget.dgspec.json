@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Towa\\source\\repos\\UdemyConcurrencia\\UdemyConcurrencia\\UdemyConcurrencia.csproj": {}
+    "C:\\Users\\Towa\\source\\repos\\UdemConcurrecia\\UdemyConcurrencia\\UdemyConcurrencia\\UdemyConcurrencia.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Towa\\source\\repos\\UdemyConcurrencia\\UdemyConcurrencia\\UdemyConcurrencia.csproj": {
+    "C:\\Users\\Towa\\source\\repos\\UdemConcurrecia\\UdemyConcurrencia\\UdemyConcurrencia\\UdemyConcurrencia.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Towa\\source\\repos\\UdemyConcurrencia\\UdemyConcurrencia\\UdemyConcurrencia.csproj",
+        "projectUniqueName": "C:\\Users\\Towa\\source\\repos\\UdemConcurrecia\\UdemyConcurrencia\\UdemyConcurrencia\\UdemyConcurrencia.csproj",
         "projectName": "UdemyConcurrencia",
-        "projectPath": "C:\\Users\\Towa\\source\\repos\\UdemyConcurrencia\\UdemyConcurrencia\\UdemyConcurrencia.csproj",
+        "projectPath": "C:\\Users\\Towa\\source\\repos\\UdemConcurrecia\\UdemyConcurrencia\\UdemyConcurrencia\\UdemyConcurrencia.csproj",
         "packagesPath": "C:\\Users\\Towa\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Towa\\source\\repos\\UdemyConcurrencia\\UdemyConcurrencia\\obj\\",
+        "outputPath": "C:\\Users\\Towa\\source\\repos\\UdemConcurrecia\\UdemyConcurrencia\\UdemyConcurrencia\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Towa\\AppData\\Roaming\\NuGet\\NuGet.Config",

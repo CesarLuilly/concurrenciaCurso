@@ -43,6 +43,7 @@
             this.loadingGIF.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.loadingGIF.TabIndex = 1;
             this.loadingGIF.TabStop = false;
+            this.loadingGIF.Visible = false;
             this.loadingGIF.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
             // btnIniciar
