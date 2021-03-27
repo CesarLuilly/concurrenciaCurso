@@ -31,17 +31,22 @@ namespace UdemyConcurrencia
         private async void btnIniciar_Click(object sender, EventArgs e)
         {
             loadingGIF.Visible = true;
-            //                          //Delay me permite crear una tarea de lo
-            //                          //  cual va a expirar en x segundos.
-            await Task.Delay(TimeSpan.FromSeconds(5));
-            //                          //Con await lo que hacemos es liberar el hilo,
-            //                          //  para que no se bloquee la aplicacion, y 
-            //                          //  seguir intercatuando con la pagina.
-            //                          // .............
-            //                          //Y ya cuando la tarea se termine, se van a seguir
-            //                          //  ejecutando las siguientes lineas de codigo 
-            //                          //  el mismo hilo UI que inicio esta operacion.
+            //                          //Si no utilizamos await, el hilo no se va a detener y va
+            //                          //  a seguir ejecutando las siguientes lineas de codigo sin
+            //                          //  importar lo que suceda con el metodo espera().
+            //                          //En ocaciones eso puede estar bien, pero todo depende de la 
+            //                          //  solucion del problema.
+            //                          //Con await, lo que queremos decir es, suspende la ejecucion
+            //                          //  de esta tarea(metodo esperar) y cuando termine la tarea, 
+            //                          //  entonces continua con las siguientes lineas de codigo.
+            await Esperar();
+            MessageBox.Show("pasaron los 5 segundos");
             loadingGIF.Visible = false;
+        }
+
+        private async Task Esperar()
+        {
+            await Task.Delay(TimeSpan.FromSeconds(5));
         }
     }
 }
