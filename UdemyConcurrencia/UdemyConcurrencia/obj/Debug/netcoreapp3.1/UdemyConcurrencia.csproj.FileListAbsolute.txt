@@ -1,0 +1,16 @@
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\bin\Debug\netcoreapp3.1\UdemyConcurrencia.exe
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\bin\Debug\netcoreapp3.1\UdemyConcurrencia.deps.json
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\bin\Debug\netcoreapp3.1\UdemyConcurrencia.runtimeconfig.json
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\bin\Debug\netcoreapp3.1\UdemyConcurrencia.runtimeconfig.dev.json
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\bin\Debug\netcoreapp3.1\UdemyConcurrencia.dll
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\bin\Debug\netcoreapp3.1\UdemyConcurrencia.pdb
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.csprojAssemblyReference.cache
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.Form1.resources
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.Properties.Resources.resources
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.csproj.GenerateResource.cache
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.AssemblyInfoInputs.cache
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.AssemblyInfo.cs
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.csproj.CoreCompileInputs.cache
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.dll
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.pdb
+C:\Users\Towa\source\repos\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.genruntimeconfig.cache

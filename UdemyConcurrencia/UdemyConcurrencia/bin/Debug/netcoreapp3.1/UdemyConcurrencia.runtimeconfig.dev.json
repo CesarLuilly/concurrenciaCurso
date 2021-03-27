@@ -1,0 +1,8 @@
+{
+  "runtimeOptions": {
+    "additionalProbingPaths": [
+      "C:\\Users\\Towa\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\Towa\\.nuget\\packages"
+    ]
+  }
+}
