@@ -39,7 +39,7 @@ namespace UdemyConcurrencia
         {
             loadingGIF.Visible = true;
 
-            var targetas = await ObteneTargetasDeCredito(50000);
+            var targetas = await ObteneTargetasDeCredito(50);
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             try
@@ -57,25 +57,33 @@ namespace UdemyConcurrencia
 
         private async Task ProcesarTargetas(List<String> targetas)
         {
-            var tareas = new List<Task>();
+            //                          //Aqui decimos que vamor a realizar peticiones de 
+            //                          //  4000 en 4000 con la finalidad de no abrumar a nuestro
+            //                          //  servidor con tantas peticiones de golpe;
+            using var semaforo = new SemaphoreSlim(3);
+            var tareas = new List<Task<HttpResponseMessage>>();
 
-            //                          //Si el for each llegara a procesar 25 000 targetas, 
-            //                          //  estariamos bloqueando el hilo del UI ya que son 
-            //                          //  bastantes y el ciclo estaria tardando, 
-            //                          //Entonces para es encerramos el foreach en una Tarea, 
-            //                          //  para que mediante el await podamos liberar el hilo
-            //                          //  UI.
-            await Task.Run(() => 
-            { 
-                foreach(var targeta in targetas)
+            tareas = targetas.Select(async targeta =>
                 {
                     var json = JsonConvert.SerializeObject(targeta);
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
-                    var respuestaTask = httpClient.PostAsync($"{strApiURL}/targetas", content);
-                    tareas.Add(respuestaTask);
-                }
-            });
+                    //                  //Lo que hace el semaforo es procesar 400 tareas,
+                    //                  //  y va a continuar cuando se hallan procesado
+                    //                  //  las 4000 tareas, en este caso.
+                    await semaforo.WaitAsync();
 
+                    //                  //Libero el samaforo y llegara a encontrar algun error.
+                    try
+                    {
+                        return await httpClient.PostAsync($"{strApiURL}/targetas", content);
+                    }
+                    finally
+                    {
+                        //              //Libero los recursos de semaforo.
+                        semaforo.Release();
+                    }
+
+                }).ToList();
             await Task.WhenAll(tareas);
         }
 
@@ -84,7 +92,8 @@ namespace UdemyConcurrencia
             )
         {
             //                          //Encerrando el ciclo en un task,
-            //                          //  de esta forma liberamos el hilo UI.
+            //                          //  de esta forma liberamos el hilo UI
+            //                          //  si es se llegaran a procesar muchas targetas.
             return await Task.Run(() => 
             {
                 var targetas = new List<String>();
