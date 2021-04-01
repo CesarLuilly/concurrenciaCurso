@@ -39,7 +39,7 @@ namespace UdemyConcurrencia
         {
             loadingGIF.Visible = true;
 
-            var targetas = ObteneTargetasDeCredito(5);
+            var targetas = await ObteneTargetasDeCredito(50000);
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             try
@@ -59,29 +59,44 @@ namespace UdemyConcurrencia
         {
             var tareas = new List<Task>();
 
-            foreach(var targeta in targetas)
-            {
-                var json = JsonConvert.SerializeObject(targeta);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var respuestaTask = httpClient.PostAsync($"{strApiURL}/targetas", content);
-                tareas.Add(respuestaTask);
-            }
+            //                          //Si el for each llegara a procesar 25 000 targetas, 
+            //                          //  estariamos bloqueando el hilo del UI ya que son 
+            //                          //  bastantes y el ciclo estaria tardando, 
+            //                          //Entonces para es encerramos el foreach en una Tarea, 
+            //                          //  para que mediante el await podamos liberar el hilo
+            //                          //  UI.
+            await Task.Run(() => 
+            { 
+                foreach(var targeta in targetas)
+                {
+                    var json = JsonConvert.SerializeObject(targeta);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    var respuestaTask = httpClient.PostAsync($"{strApiURL}/targetas", content);
+                    tareas.Add(respuestaTask);
+                }
+            });
 
             await Task.WhenAll(tareas);
         }
 
-        private List<String> ObteneTargetasDeCredito(
+        private async Task<List<String>>  ObteneTargetasDeCredito(
             int cantidadDeTargetas
             )
         {
-            var targetas = new List<String>();
-            for(int i =0; i < cantidadDeTargetas; i++)
+            //                          //Encerrando el ciclo en un task,
+            //                          //  de esta forma liberamos el hilo UI.
+            return await Task.Run(() => 
             {
-                //00000001
-                targetas.Add(i.ToString().PadLeft(16, '0')); 
-            }
+                var targetas = new List<String>();
+                for (int i = 0; i < cantidadDeTargetas; i++)
+                {
+                    //00000001
+                    targetas.Add(i.ToString().PadLeft(16, '0'));
+                }
 
-            return targetas;
+                return targetas;
+            });
+            
         }
 
 
