@@ -39,7 +39,7 @@ namespace UdemyConcurrencia
         {
             loadingGIF.Visible = true;
 
-            var targetas = await ObteneTargetasDeCredito(50);
+            var targetas = await ObteneTargetasDeCredito(2500);
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             try
@@ -60,7 +60,7 @@ namespace UdemyConcurrencia
             //                          //Aqui decimos que vamor a realizar peticiones de 
             //                          //  4000 en 4000 con la finalidad de no abrumar a nuestro
             //                          //  servidor con tantas peticiones de golpe;
-            using var semaforo = new SemaphoreSlim(3);
+            using var semaforo = new SemaphoreSlim(1000);
             var tareas = new List<Task<HttpResponseMessage>>();
 
             tareas = targetas.Select(async targeta =>
@@ -84,7 +84,30 @@ namespace UdemyConcurrencia
                     }
 
                 }).ToList();
-            await Task.WhenAll(tareas);
+
+            //                          //Con await podemos obtener el resultado de esas tareas y 
+            //                          //  luego procesar el resultado de esas tareas, en este caso, 
+            //                          //  de las peticiones que se icieron vamos a ver que targetas
+            //                          //  fueron rechazadas.
+            var respuestas = await Task.WhenAll(tareas);
+
+            var tagetasRechazadas = new List<String>();
+            foreach (var respuesta in respuestas)
+            {
+                var contenido = await respuesta.Content.ReadAsStringAsync();
+                var respuestaTargeta = JsonConvert
+                    .DeserializeObject<RespuestaTargeta>(contenido);
+                if (
+                    !respuestaTargeta.Aprobada
+                    )
+                {
+                    tagetasRechazadas.Add(respuestaTargeta.Targeta);
+                }
+            }
+            foreach (var targeta in tagetasRechazadas)
+            {
+                Console.WriteLine(targeta);
+            }
         }
 
         private async Task<List<String>>  ObteneTargetasDeCredito(
