@@ -86,16 +86,16 @@ namespace UdemyConcurrencia
                     try
                     {
                         var tareaInterna = await httpClient.PostAsync($"{strApiURL}/targetas", content);
-                        if (
-                            progress != null
-                        )
-                        {
-                            indice++;
-                            var porcentaje = (double)indice / targetas.Count;
-                            porcentaje = porcentaje * 100;
-                            var porcentajeInt = (int)Math.Round(porcentaje, 0);
-                            progress.Report(porcentajeInt);
-                        }
+                        //if (
+                        //    progress != null
+                        //)
+                        //{
+                        //    indice++;
+                        //    var porcentaje = (double)indice / targetas.Count;
+                        //    porcentaje = porcentaje * 100;
+                        //    var porcentajeInt = (int)Math.Round(porcentaje, 0);
+                        //    progress.Report(porcentajeInt);
+                        //}
                         return tareaInterna;
                     }
                     finally
@@ -110,7 +110,37 @@ namespace UdemyConcurrencia
             //                          //  luego procesar el resultado de esas tareas, en este caso, 
             //                          //  de las peticiones que se icieron vamos a ver que targetas
             //                          //  fueron rechazadas.
-            var respuestas = await Task.WhenAll(tareas);
+            var respuestasTareas = Task.WhenAll(tareas);
+
+            if (
+                progress != null)
+            {
+                //                      //Re
+                while (
+                    //                  //TaskWhenAny va a retornar la tarea que culmino.
+                    //                  //Es decir, tomando el task.delay, esa tarea termina en cada 
+                    //                  //  segundo, per se va a salir del ciclo hasta que la tarea que 
+                    //                  //  haya terminado sea la de respuestasTareas.
+                    //                  //ESTA TECNICA ES LA MAS VIABLE Y NOS PERMITE EJECUTAR UNA PIEZA 
+                    //                  //  DE CODIGO, EN ESTE CASO UN PEDAZO DE CODIGO
+                    //                  //  POR CADA SEGUNDO.
+                    await Task.WhenAny(respuestasTareas, Task.Delay(1000)) 
+                    != respuestasTareas)
+                {
+                    var tareasCompletadas = tareas.Where(x => x.IsCompleted).Count();
+                    var porcentaje = (double)tareasCompletadas / targetas.Count;
+                    porcentaje = porcentaje * 100;
+                    var porcentajeInt = (int)Math.Round(porcentaje, 0);
+                    progress.Report(porcentajeInt);
+
+                }
+            }
+
+            //                          //NOTA. SI LA TAREA YA AH SIDO COMPLETADA, 
+            //                          //  Y SI LE LLEGO A PONER UN AWAIT A LA TAREA, 
+            //                          //  NO QUIERE DECIR QUE LA TAREA SE VA EJECUTAR
+            //                          //  2 VESES, SIMPLEMENTE SIGUE LA EJECUCION.
+            var respuestas = await respuestasTareas;
 
             var tagetasRechazadas = new List<String>();
             foreach (var respuesta in respuestas)

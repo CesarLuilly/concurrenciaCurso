@@ -31,3 +31,4 @@ C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\o
 C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.dll
 C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.pdb
 C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.genruntimeconfig.cache
+C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.csprojAssemblyReference.cache
