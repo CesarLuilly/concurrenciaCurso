@@ -38,14 +38,16 @@ namespace UdemyConcurrencia
         private async void btnIniciar_Click(object sender, EventArgs e)
         {
             loadingGIF.Visible = true;
+            pgProcesamiento.Visible = true;
+            var resportarProgreso = new Progress<int>(ReportarProgresoTargetas);
 
-            var targetas = await ObteneTargetasDeCredito(2500);
+            var targetas = await ObteneTargetasDeCredito(20);
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             try
             {
                 //        
-                await ProcesarTargetas(targetas);
+                await ProcesarTargetas(targetas, resportarProgreso);
             }
             catch (HttpRequestException ex)
             {
@@ -53,16 +55,25 @@ namespace UdemyConcurrencia
             }
             MessageBox.Show($"Operacion finalizada en {stopwatch.ElapsedMilliseconds / 1000.0} segundos.");
             loadingGIF.Visible = false;
+            pgProcesamiento.Visible = false;
         }
 
-        private async Task ProcesarTargetas(List<String> targetas)
+        private void ReportarProgresoTargetas(
+            int porcentaje
+            )
+        {
+            pgProcesamiento.Value = porcentaje;
+        }
+
+        private async Task ProcesarTargetas(List<String> targetas, 
+            IProgress<int> progress = null)
         {
             //                          //Aqui decimos que vamor a realizar peticiones de 
-            //                          //  4000 en 4000 con la finalidad de no abrumar a nuestro
+            //                          //  2 en 2 con la finalidad de no abrumar a nuestro
             //                          //  servidor con tantas peticiones de golpe;
-            using var semaforo = new SemaphoreSlim(1000);
+            using var semaforo = new SemaphoreSlim(2);
             var tareas = new List<Task<HttpResponseMessage>>();
-
+            int indice = 0;
             tareas = targetas.Select(async targeta =>
                 {
                     var json = JsonConvert.SerializeObject(targeta);
@@ -71,11 +82,21 @@ namespace UdemyConcurrencia
                     //                  //  y va a continuar cuando se hallan procesado
                     //                  //  las 4000 tareas, en este caso.
                     await semaforo.WaitAsync();
-
                     //                  //Libero el samaforo y llegara a encontrar algun error.
                     try
                     {
-                        return await httpClient.PostAsync($"{strApiURL}/targetas", content);
+                        var tareaInterna = await httpClient.PostAsync($"{strApiURL}/targetas", content);
+                        if (
+                            progress != null
+                        )
+                        {
+                            indice++;
+                            var porcentaje = (double)indice / targetas.Count;
+                            porcentaje = porcentaje * 100;
+                            var porcentajeInt = (int)Math.Round(porcentaje, 0);
+                            progress.Report(porcentajeInt);
+                        }
+                        return tareaInterna;
                     }
                     finally
                     {

@@ -21,7 +21,6 @@ C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\b
 C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\bin\Debug\netcoreapp3.1\UdemyConcurrencia.dll
 C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\bin\Debug\netcoreapp3.1\UdemyConcurrencia.pdb
 C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\bin\Debug\netcoreapp3.1\Newtonsoft.Json.dll
-C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.csprojAssemblyReference.cache
 C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.Form1.resources
 C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.Properties.Resources.resources
 C:\Users\Towa\source\repos\UdemConcurrecia\UdemyConcurrencia\UdemyConcurrencia\obj\Debug\netcoreapp3.1\UdemyConcurrencia.csproj.GenerateResource.cache

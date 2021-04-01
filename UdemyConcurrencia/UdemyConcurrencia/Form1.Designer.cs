@@ -33,6 +33,7 @@
             this.btnIniciar = new System.Windows.Forms.Button();
             this.txtInput = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.pgProcesamiento = new System.Windows.Forms.ProgressBar();
             ((System.ComponentModel.ISupportInitialize)(this.loadingGIF)).BeginInit();
             this.SuspendLayout();
             // 
@@ -75,11 +76,20 @@
             this.label1.Text = "Nombre";
             this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
+            // pgProcesamiento
+            // 
+            this.pgProcesamiento.Location = new System.Drawing.Point(61, 254);
+            this.pgProcesamiento.Name = "pgProcesamiento";
+            this.pgProcesamiento.Size = new System.Drawing.Size(125, 29);
+            this.pgProcesamiento.TabIndex = 5;
+            this.pgProcesamiento.Visible = false;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.pgProcesamiento);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtInput);
             this.Controls.Add(this.btnIniciar);
@@ -98,6 +108,7 @@
         private System.Windows.Forms.Button btnIniciar;
         private System.Windows.Forms.TextBox txtInput;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ProgressBar pgProcesamiento;
     }
 }
 
