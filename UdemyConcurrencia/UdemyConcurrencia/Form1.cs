@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Net.Http;
@@ -36,31 +38,64 @@ namespace UdemyConcurrencia
         private async void btnIniciar_Click(object sender, EventArgs e)
         {
             loadingGIF.Visible = true;
-            var nombre = txtInput.Text;
-            var saludo = await ObtenerSaludos(nombre);
-            //                          //Si no utilizamos await, el hilo no se va a detener y va
-            //                          //  a seguir ejecutando las siguientes lineas de codigo sin
-            //                          //  importar lo que suceda con el metodo espera().
-            //                          //En ocaciones eso puede estar bien, pero todo depende de la 
-            //                          //  solucion del problema.
-            //                          //Con await, lo que queremos decir es, suspende la ejecucion
-            //                          //  de esta tarea(metodo esperar) y cuando termine la tarea, 
-            //                          //  entonces continua con las siguientes lineas de codigo.
-            await Esperar();
-            MessageBox.Show(saludo);
+
+            var targetas = ObteneTargetasDeCredito(5);
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            try
+            {
+                //        
+                await ProcesarTargetas(targetas);
+            }
+            catch (HttpRequestException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            MessageBox.Show($"Operacion finalizada en {stopwatch.ElapsedMilliseconds / 1000.0} segundos.");
             loadingGIF.Visible = false;
         }
 
+        private async Task ProcesarTargetas(List<String> targetas)
+        {
+            var tareas = new List<Task>();
+
+            foreach(var targeta in targetas)
+            {
+                var json = JsonConvert.SerializeObject(targeta);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var respuestaTask = httpClient.PostAsync($"{strApiURL}/targetas", content);
+                tareas.Add(respuestaTask);
+            }
+
+            await Task.WhenAll(tareas);
+        }
+
+        private List<String> ObteneTargetasDeCredito(
+            int cantidadDeTargetas
+            )
+        {
+            var targetas = new List<String>();
+            for(int i =0; i < cantidadDeTargetas; i++)
+            {
+                //00000001
+                targetas.Add(i.ToString().PadLeft(16, '0')); 
+            }
+
+            return targetas;
+        }
+
+
         private async Task Esperar()
         {
-            await Task.Delay(TimeSpan.FromSeconds(5));
+            await Task.Delay(TimeSpan.FromSeconds(0));
         }
 
         private async Task<String> ObtenerSaludos(String nombre)
         {
             using (var respuesta =
-                await httpClient.GetAsync($"{strApiURL}/saludos/{nombre}"))
+                await httpClient.GetAsync($"{strApiURL}/saludos2/{nombre}"))
             {
+                respuesta.EnsureSuccessStatusCode();
                 //                      //Aqui voy a leer el contenido de la 
                 //                      //  respuesta http.
                 var saludo = await respuesta.Content.ReadAsStringAsync();
