@@ -42,42 +42,16 @@ namespace UdemyConcurrencia
 
         private async void btnIniciar_Click(object sender, EventArgs e)
         {
-            //                          //ESte token se les pasa a los metodos en donde
-            //                          //  en donde yo quiero cancelar la tarea.
-            cancellationTokenSource = new CancellationTokenSource();
-
-            //                          //cancelar el token despues de 3 segundos.
-            cancellationTokenSource.CancelAfter(3000);
-
             loadingGIF.Visible = true;
-            pgProcesamiento.Visible = true;
-            var resportarProgreso = new Progress<int>(ReportarProgresoTargetas);
 
-            
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            try
-            {
-                var targetas = await ObteneTargetasDeCredito(20, 
-                    cancellationTokenSource.Token);
-                //        
-                await ProcesarTargetas(targetas, resportarProgreso,
-                    cancellationTokenSource.Token);
-            }
-            catch (HttpRequestException ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            catch (TaskCanceledException ex)
-            {
-                //                      //Cuando la tarea es cancelada, lo que hace el token es
-                //                      //  lanzar una excepcion.
-                MessageBox.Show("La operacion ah sido cancelada.");
-            }
-            MessageBox.Show($"Operacion finalizada en {stopwatch.ElapsedMilliseconds / 1000.0} segundos.");
-            loadingGIF.Visible = false;
+            Console.WriteLine($"Hilo antes del await: {Thread.CurrentThread.ManagedThreadId}");
+            await Task.Delay(1000);
+            Console.WriteLine($"Hilo antes del await: {Thread.CurrentThread.ManagedThreadId}");
+
+            await ObtenerSaludos("Felipe");
+            Console.WriteLine($"ULtimo");
             pgProcesamiento.Visible = false;
-            pgProcesamiento.Value = 0;
+
         }
 
         private void ReportarProgresoTargetas(
@@ -282,7 +256,7 @@ namespace UdemyConcurrencia
         private async Task<String> ObtenerSaludos(String nombre)
         {
             using (var respuesta =
-                await httpClient.GetAsync($"{strApiURL}/saludos2/{nombre}"))
+                await httpClient.GetAsync($"{strApiURL}/saludos/delay/{nombre}"))
             {
                 respuesta.EnsureSuccessStatusCode();
                 //                      //Aqui voy a leer el contenido de la 
