@@ -18,6 +18,9 @@ namespace UdemyConcurrencia
     {
         private string strApiURL;
         private HttpClient httpClient;
+        //                              //Este token es para cancelar
+        //                              //  tareas y se declara a nivel de 
+        //                              //  de clase.
         private CancellationTokenSource cancellationTokenSource;
 
         public Form1()
@@ -42,16 +45,17 @@ namespace UdemyConcurrencia
             //                          //ESte token se les pasa a los metodos en donde
             //                          //  en donde yo quiero cancelar la tarea.
             cancellationTokenSource = new CancellationTokenSource();
-
             loadingGIF.Visible = true;
             pgProcesamiento.Visible = true;
             var resportarProgreso = new Progress<int>(ReportarProgresoTargetas);
 
-            var targetas = await ObteneTargetasDeCredito(20);
+            
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             try
             {
+                var targetas = await ObteneTargetasDeCredito(20, 
+                    cancellationTokenSource.Token);
                 //        
                 await ProcesarTargetas(targetas, resportarProgreso,
                     cancellationTokenSource.Token);
@@ -62,6 +66,8 @@ namespace UdemyConcurrencia
             }
             catch (TaskCanceledException ex)
             {
+                //                      //Cuando la tarea es cancelada, lo que hace el token es
+                //                      //  lanzar una excepcion.
                 MessageBox.Show("La operacion ah sido cancelada.");
             }
             MessageBox.Show($"Operacion finalizada en {stopwatch.ElapsedMilliseconds / 1000.0} segundos.");
@@ -176,19 +182,36 @@ namespace UdemyConcurrencia
         }
 
         private async Task<List<String>>  ObteneTargetasDeCredito(
-            int cantidadDeTargetas
+            int cantidadDeTargetas, 
+            //                          //Con default lo que decimos es que 
+            //                          //  el cancelation Token no es obligatorio
+            //                          //  pasarlo al metodo.
+            CancellationToken cancellationToken = default
             )
         {
             //                          //Encerrando el ciclo en un task,
             //                          //  de esta forma liberamos el hilo UI
             //                          //  si es se llegaran a procesar muchas targetas.
-            return await Task.Run(() => 
+            return await Task.Run(async () => 
             {
                 var targetas = new List<String>();
                 for (int i = 0; i < cantidadDeTargetas; i++)
                 {
+                    //                  //con esto vamos a simular que vamos a
+                    //                  //  esta haciendo un procesamiento largo.
+                    await Task.Delay(1000);
                     //00000001
                     targetas.Add(i.ToString().PadLeft(16, '0'));
+
+                    Console.WriteLine($"Han sido generadas  { targetas.Count } ");
+                    if (
+                        //              //Lo que me dise es ver si el token ya ha 
+                        //              //  solicitado la cancelacion del token.
+                        cancellationToken.IsCancellationRequested
+                    )
+                    {
+                        throw new TaskCanceledException();
+                    }
                 }
 
                 return targetas;
