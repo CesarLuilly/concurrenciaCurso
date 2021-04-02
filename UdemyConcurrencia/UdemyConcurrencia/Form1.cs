@@ -18,6 +18,8 @@ namespace UdemyConcurrencia
     {
         private string strApiURL;
         private HttpClient httpClient;
+        private CancellationTokenSource cancellationTokenSource;
+
         public Form1()
         {
             InitializeComponent();
@@ -37,6 +39,10 @@ namespace UdemyConcurrencia
 
         private async void btnIniciar_Click(object sender, EventArgs e)
         {
+            //                          //ESte token se les pasa a los metodos en donde
+            //                          //  en donde yo quiero cancelar la tarea.
+            cancellationTokenSource = new CancellationTokenSource();
+
             loadingGIF.Visible = true;
             pgProcesamiento.Visible = true;
             var resportarProgreso = new Progress<int>(ReportarProgresoTargetas);
@@ -47,15 +53,21 @@ namespace UdemyConcurrencia
             try
             {
                 //        
-                await ProcesarTargetas(targetas, resportarProgreso);
+                await ProcesarTargetas(targetas, resportarProgreso,
+                    cancellationTokenSource.Token);
             }
             catch (HttpRequestException ex)
             {
                 MessageBox.Show(ex.Message);
             }
+            catch (TaskCanceledException ex)
+            {
+                MessageBox.Show("La operacion ah sido cancelada.");
+            }
             MessageBox.Show($"Operacion finalizada en {stopwatch.ElapsedMilliseconds / 1000.0} segundos.");
             loadingGIF.Visible = false;
             pgProcesamiento.Visible = false;
+            pgProcesamiento.Value = 0;
         }
 
         private void ReportarProgresoTargetas(
@@ -66,7 +78,8 @@ namespace UdemyConcurrencia
         }
 
         private async Task ProcesarTargetas(List<String> targetas, 
-            IProgress<int> progress = null)
+            IProgress<int> progress = null, 
+            CancellationToken cancellationToken = default)
         {
             //                          //Aqui decimos que vamor a realizar peticiones de 
             //                          //  2 en 2 con la finalidad de no abrumar a nuestro
@@ -85,7 +98,8 @@ namespace UdemyConcurrencia
                     //                  //Libero el samaforo y llegara a encontrar algun error.
                     try
                     {
-                        var tareaInterna = await httpClient.PostAsync($"{strApiURL}/targetas", content);
+                        var tareaInterna = await httpClient.PostAsync($"{strApiURL}/targetas", content,
+                            cancellationToken);
                         //if (
                         //    progress != null
                         //)
@@ -204,6 +218,15 @@ namespace UdemyConcurrencia
         private void label1_Click(object sender, EventArgs e)
         {
             
+        }
+
+        private void btnCancelar_Click(object sender, EventArgs e)
+        {
+            //                          //Esto lo que hace es lanzar una excepcion
+            //                          //  con la finalidad de cancelar la exception.
+            //                          //Para eso nosotros necesitamos atrapar la
+            //                          //  excepcion.
+            cancellationTokenSource?.Cancel();
         }
     }
 }
