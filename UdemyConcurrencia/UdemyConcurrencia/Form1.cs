@@ -86,6 +86,15 @@ namespace UdemyConcurrencia
         {
             pgProcesamiento.Value = porcentaje;
         }
+        private Task ProcesarTargetasMock(List<String> targetas,
+            IProgress<int> progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            //                          //Lo que hace es que se crea una tarea,
+            //                          //  lo cual por defecto ya se encuentra 
+            //                          //  completada y lo retornamos, .
+            return Task.CompletedTask;
+        }
 
         private async Task ProcesarTargetas(List<String> targetas, 
             IProgress<int> progress = null, 
@@ -183,6 +192,47 @@ namespace UdemyConcurrencia
             {
                 Console.WriteLine(targeta);
             }
+        }
+
+        private Task<List<String>> ObteneTargetasDeCreditoMock(
+            int cantidadDeTargetas,
+            CancellationToken cancellationToken = default
+            )
+        { 
+            
+            var targetas = new List<String>();
+            targetas.Add("0000000001");
+
+            //                          //En el siguiente codigo estamos 
+            //                          //  estas targetas dentro de una tarea lo cual
+            //                          //  ya se encuentra sastifactoriamente
+            //                          //  completada.
+            return Task.FromResult(targetas);
+        }
+
+        private Task obtenerTareaConError()
+        {
+
+            //                          //De esta manera esta tarea se ah configurado
+            //                          //  con un error. 
+            //                          //Estos es importante en prubas unitarias para
+            //                          //  comproboar que el codigo responde correctamente 
+            //                          //  cuando un metodo retorna una tarea con un error.
+            //                          //De esta manera podemos estar seguros que nuestro
+            //                          //  software procesa esto de manera correcta.
+            return Task.FromException(new ApplicationException());
+        }
+
+        private Task obtenerTareasCanceladas()
+        {
+            //                          //Con esto estamos obteniendo una tarea que ah sido
+            //                          //  cancelada, 
+            //                          //Esto es util, sobre todo cuando estamos haciendo
+            //                          //  pruebas unitarias y queremos ver que nuestro
+            //                          //  software responde bien a tareas que han sido 
+            //                          //  canceladas.
+            cancellationTokenSource = new CancellationTokenSource();
+            return Task.FromCanceled(cancellationTokenSource.Token);
         }
 
         private async Task<List<String>>  ObteneTargetasDeCredito(
