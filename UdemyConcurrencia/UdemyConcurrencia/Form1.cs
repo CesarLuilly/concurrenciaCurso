@@ -45,6 +45,10 @@ namespace UdemyConcurrencia
             //                          //ESte token se les pasa a los metodos en donde
             //                          //  en donde yo quiero cancelar la tarea.
             cancellationTokenSource = new CancellationTokenSource();
+
+            //                          //cancelar el token despues de 3 segundos.
+            cancellationTokenSource.CancelAfter(3000);
+
             loadingGIF.Visible = true;
             pgProcesamiento.Visible = true;
             var resportarProgreso = new Progress<int>(ReportarProgresoTargetas);
@@ -192,14 +196,14 @@ namespace UdemyConcurrencia
             //                          //Encerrando el ciclo en un task,
             //                          //  de esta forma liberamos el hilo UI
             //                          //  si es se llegaran a procesar muchas targetas.
-            return await Task.Run(async () => 
+            return await Task.Run(/*async*/ () => 
             {
                 var targetas = new List<String>();
                 for (int i = 0; i < cantidadDeTargetas; i++)
                 {
                     //                  //con esto vamos a simular que vamos a
                     //                  //  esta haciendo un procesamiento largo.
-                    await Task.Delay(1000);
+                    //await Task.Delay(1000);
                     //00000001
                     targetas.Add(i.ToString().PadLeft(16, '0'));
 
