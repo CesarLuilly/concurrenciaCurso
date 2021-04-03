@@ -42,31 +42,148 @@ namespace UdemyConcurrencia
 
         private async void btnIniciar_Click(object sender, EventArgs e)
         {
-            //                          //Es una bandera para verificar si se hacen 
-            //                          //  llamadas ilegales entre hilos,
-            //                          //Por defecto es false.
-            CheckForIllegalCrossThreadCalls = true;
             loadingGIF.Visible = true;
 
-            btnCancelar.Text = "antes";
+            //==============================================================
+            //                          //FORMA 1 DE REINTENTO.
 
-            //                          //se va a emplear una tarea que dura 
-            //                          //  3 segundos, y cuando pasen los 3 segundos
-            //                          //  se le va a notificar al hilo UI que puede
-            //                          //  continuar con la ejecucion del resto del 
-            //                          //  metodo.
-            //                          //Hay que tener en cuenta que el boton forma
-            //                          //  parte del hilo UI y al ser creado por el 
-            //                          //  hilo UI, no se puede acceder a el desde 
-            //                          //  otro hilo.
+            //var reintento = 3;
+            //var tiempoEspera = 500;
 
-            //                          //continueOnCapturedContext : false, est o
-            //                          //  que lo que este despues de esa linea, se va
-            //                          //  ejecutar en otro hilo.
-            await Task.Delay(3000).ConfigureAwait(continueOnCapturedContext : false);
+            //for (int i = 0; i < reintento; i++)
+            //{
+            //    try
+            //    {
+            //        //                  //Operacion, Peticion HTTP.
 
-            btnCancelar.Text = "despues";
+            //        //                  //Uso de brake para salir del for,
+            //        //                  //  cuando la peticion haya sido
+            //        //                  //  exitosa.
+            //        break;
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        await Task.Delay(tiempoEspera);
+            //        throw;
+            //    }
+            //}
+
+            //=================================================================
+            //                          //FORMA 2 DE PATRON DE REINTENTO, PASADOLE
+            //                          //  FUNCION ANONIMA
+
+            //await Reintentar(
+            //    //                      //Le pasamos una expresion Lamda, o una
+            //    //                      //  funcion anonima de tipo flecha.
+            //    async () =>
+            //    {
+            //        using (var respuesta = await httpClient.GetAsync($"{strApiURL}/Saludos/Cesar"))
+            //        {
+            //            //              //Con la siguiente linea, indicamos que 
+            //            //              //  va a lanzar una excepcion en caso de la
+            //            //              //  respuesta no sea sastifactoria.
+            //            respuesta.EnsureSuccessStatusCode();
+            //            var contenido = await respuesta.Content.ReadAsStringAsync();
+            //            Console.WriteLine(contenido);
+            //        }
+            //    }
+            //);
+
+            //                          //FORMA 3 DE PATRON DE REINTENTO.
+            //await Reintentar(ProcesarSaludos);
+
+            //                          //FORMA 4 DE PATRON DE REINTENTO.
+            //                          //Atrapando la exception desde este lugar.
+            try
+            {
+                var contenido = await Reintentar(async () =>
+                {
+                    using (var respuesta = await httpClient.GetAsync($"{strApiURL}/Saludos/Cesar"))
+                    {
+                        //              //Con la siguiente linea, indicamos que 
+                        //              //  va a lanzar una excepcion en caso de la
+                        //              //  respuesta no sea sastifactoria.
+                        respuesta.EnsureSuccessStatusCode();
+                        var contenido = await respuesta.Content.ReadAsStringAsync();
+                        return contenido;
+                    }
+                });
+
+                Console.WriteLine(contenido);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);                
+            }
+            
             pgProcesamiento.Visible = false;
+            loadingGIF.Visible = false;
+        }
+
+        private async Task ProcesarSaludos()
+        {
+            using (var respuesta = await httpClient.GetAsync($"{strApiURL}/Saludos/Cesar"))
+            {
+                //              //Con la siguiente linea, indicamos que 
+                //              //  va a lanzar una excepcion en caso de la
+                //              //  respuesta no sea sastifactoria.
+                respuesta.EnsureSuccessStatusCode();
+                var contenido = await respuesta.Content.ReadAsStringAsync();
+                Console.WriteLine(contenido);
+            }
+        }
+
+        private async Task Reintentar(
+            //                          //Funcion es el que realiza la peticion HTTP.
+            Func<Task> f, 
+            int reintentos = 3, 
+            int tiempoEspera = 500)
+        {
+            for (int i = 0; i < reintentos; i++)
+            {
+                try
+                {
+                    //                  //Operacion, Peticion HTTP.
+                    await f();
+                    //                  //Uso de brake para salir del for,
+                    //                  //  cuando la peticion haya sido
+                    //                  //  exitosa.
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    await Task.Delay(tiempoEspera);
+                }
+            }
+        }
+
+        private async Task<T> Reintentar<T>(
+            //                          //Funcion es el que realiza la peticion HTTP.
+            Func<Task<T>> f,
+            int reintentos = 3,
+            int tiempoEspera = 500)
+        {
+            for (int i = 0; i < reintentos - 1 /*vamos a realizar 2 peticion*/; i++)
+            {
+                try
+                {
+                    //                  //Operacion, Peticion HTTP.
+                    return await f();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    await Task.Delay(tiempoEspera);
+                }
+            }
+
+            //                          //Si los reintentos anteriores fallan, aqui 
+            //                          //  se va a realizar otro intento.
+            //                          //Si llegara a haber una exception aqui, 
+            //                          //  esa exception va a subir hacia el cliente
+            //                          //  de este metodo(Reintentar();)
+            return await f();
         }
 
         private void ReportarProgresoTargetas(
