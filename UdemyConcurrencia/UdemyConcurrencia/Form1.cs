@@ -42,16 +42,31 @@ namespace UdemyConcurrencia
 
         private async void btnIniciar_Click(object sender, EventArgs e)
         {
+            //                          //Es una bandera para verificar si se hacen 
+            //                          //  llamadas ilegales entre hilos,
+            //                          //Por defecto es false.
+            CheckForIllegalCrossThreadCalls = true;
             loadingGIF.Visible = true;
 
-            Console.WriteLine($"Hilo antes del await: {Thread.CurrentThread.ManagedThreadId}");
-            await Task.Delay(1000);
-            Console.WriteLine($"Hilo antes del await: {Thread.CurrentThread.ManagedThreadId}");
+            btnCancelar.Text = "antes";
 
-            await ObtenerSaludos("Felipe");
-            Console.WriteLine($"ULtimo");
+            //                          //se va a emplear una tarea que dura 
+            //                          //  3 segundos, y cuando pasen los 3 segundos
+            //                          //  se le va a notificar al hilo UI que puede
+            //                          //  continuar con la ejecucion del resto del 
+            //                          //  metodo.
+            //                          //Hay que tener en cuenta que el boton forma
+            //                          //  parte del hilo UI y al ser creado por el 
+            //                          //  hilo UI, no se puede acceder a el desde 
+            //                          //  otro hilo.
+
+            //                          //continueOnCapturedContext : false, est o
+            //                          //  que lo que este despues de esa linea, se va
+            //                          //  ejecutar en otro hilo.
+            await Task.Delay(3000).ConfigureAwait(continueOnCapturedContext : false);
+
+            btnCancelar.Text = "despues";
             pgProcesamiento.Visible = false;
-
         }
 
         private void ReportarProgresoTargetas(
