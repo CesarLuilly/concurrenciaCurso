@@ -43,81 +43,135 @@ namespace UdemyConcurrencia
         private async void btnIniciar_Click(object sender, EventArgs e)
         {
             loadingGIF.Visible = true;
+            cancellationTokenSource = new CancellationTokenSource();
+            var token = cancellationTokenSource.Token;
 
-            //==============================================================
-            //                          //FORMA 1 DE REINTENTO.
+            var nombre = new String[] { "Cesar", "Luilly", "Ashly", "Mairam" };
 
-            //var reintento = 3;
-            //var tiempoEspera = 500;
+            //                          // ** FORMA 1. ** 
+            //var tareasHttp = nombre.Select(x => ObtenerSaludos(x, token));
 
-            //for (int i = 0; i < reintento; i++)
-            //{
-            //    try
-            //    {
-            //        //                  //Operacion, Peticion HTTP.
+            ////                          //WhenAny devuelve la primer tarea que se
+            ////                          //  termina primero de un conjunto de tareas.
+            //var tarea = await Task.WhenAny(tareasHttp);
+            //var contenido = await tarea;
+            //Console.WriteLine(contenido.ToUpper());
+            ////                          //Con la siguiente instruccion estoy cancelando
+            ////                          //  las demas tareas.
+            //cancellationTokenSource.Cancel();
 
-            //        //                  //Uso de brake para salir del for,
-            //        //                  //  cuando la peticion haya sido
-            //        //                  //  exitosa.
-            //        break;
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        await Task.Delay(tiempoEspera);
-            //        throw;
-            //    }
-            //}
 
-            //=================================================================
-            //                          //FORMA 2 DE PATRON DE REINTENTO, PASADOLE
-            //                          //  FUNCION ANONIMA
 
-            //await Reintentar(
-            //    //                      //Le pasamos una expresion Lamda, o una
-            //    //                      //  funcion anonima de tipo flecha.
-            //    async () =>
-            //    {
-            //        using (var respuesta = await httpClient.GetAsync($"{strApiURL}/Saludos/Cesar"))
-            //        {
-            //            //              //Con la siguiente linea, indicamos que 
-            //            //              //  va a lanzar una excepcion en caso de la
-            //            //              //  respuesta no sea sastifactoria.
-            //            respuesta.EnsureSuccessStatusCode();
-            //            var contenido = await respuesta.Content.ReadAsStringAsync();
-            //            Console.WriteLine(contenido);
-            //        }
-            //    }
-            //);
+            //                          // ** FORMA 2. ** 
+            //var tareasHTTP = nombre.Select(x => {
+            //    Func<CancellationToken, Task<String>> funcion = (ct) =>
+            //        ObtenerSaludos(x, ct);
+            //    return funcion;
+            //});
 
-            //                          //FORMA 3 DE PATRON DE REINTENTO.
-            //await Reintentar(ProcesarSaludos);
+            //var contenido = await EjecutarUno(tareasHTTP);
+            //Console.WriteLine(contenido.ToUpper());
 
-            //                          //FORMA 4 DE PATRON DE REINTENTO.
-            //                          //Atrapando la exception desde este lugar.
-            try
-            {
-                var contenido = await Reintentar(async () =>
-                {
-                    using (var respuesta = await httpClient.GetAsync($"{strApiURL}/Saludos/Cesar"))
-                    {
-                        //              //Con la siguiente linea, indicamos que 
-                        //              //  va a lanzar una excepcion en caso de la
-                        //              //  respuesta no sea sastifactoria.
-                        respuesta.EnsureSuccessStatusCode();
-                        var contenido = await respuesta.Content.ReadAsStringAsync();
-                        return contenido;
-                    }
-                });
+            //                          // ** FORMA 3. ** 
+            var contenido = await EjecutarUnoV2(
+                //                      //De esta forma o puedo enviar tantas 
+                //                      //  expresiones lamda como yo quiera.
+                //                      //Esto es bien comodo para cuando tenemos +
+                //                      //  distintas funciones que queremos ejecutar de 
+                //                      //  manera simultanea y solamente queremos obtener
+                //                      //  el resultado de una de ellas y cancelar las
+                //                      //  demas tareas.
+                //                      //Aqui estamos utilizando el patron de ejecutar 
+                //                      //  solamente una tarea y cancelar las demas 
+                //                      //  tareas.
+                (ct) => ObtenerSaludos("Cesar", ct),
+                (ct) => ObtenerAdios("Cesar", ct)
+                );
 
-                Console.WriteLine(contenido);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);                
-            }
-            
+            Console.WriteLine(contenido.ToUpper());
             pgProcesamiento.Visible = false;
             loadingGIF.Visible = false;
+        }
+
+        private async Task<T> EjecutarUno<T>(
+            //                          //Tenemos un enumerable, es decir una 
+            //                          //  coleccion iterable de funciones las
+            //                          //  cuales van a recibir como parametro un
+            //                          //  CancellationToken y van a devolver un 
+            //                          //  Task<T>, y a esta colecion de funciones,
+            //                          //  les estamos llamando funciones.
+            IEnumerable<Func<CancellationToken, Task<T>>> funciones
+            )
+        {
+            var cts = new CancellationTokenSource();
+            var tareas = funciones.Select(funcion => funcion(cts.Token));
+            //                          //WhenAny devuelve la primer tarea que se
+            //                          //  termina primero de un conjunto de tareas,
+            //                          //  cuando se haya devuelto la tarea continua
+            //                          //  con la ejecucion.
+            var tarea = await Task.WhenAny(tareas);
+            //                          //Con la siguiente instruccion estoy cancelando
+            //                          //  las demas tareas.
+            cts.Cancel();
+            return await tarea;
+        }
+
+        private async Task<T> EjecutarUnoV2<T>(
+            params 
+
+            //                          //Con paramas estamos diciendo que podemos 
+            //                          //  enviar tantos parametros que sean del 
+            //                          //  tipo de dato especificado
+            Func<CancellationToken, Task<T>>[] funciones
+            )
+        {
+            var cts = new CancellationTokenSource();
+            var tareas = funciones.Select(funcion => funcion(cts.Token));
+            //                          //WhenAny devuelve la primer tarea que se
+            //                          //  termina primero de un conjunto de tareas,
+            //                          //  cuando se haya devuelto la tarea continua
+            //                          //  con la ejecucion.
+            var tarea = await Task.WhenAny(tareas);
+            //                          //Con la siguiente instruccion estoy cancelando
+            //                          //  las demas tareas.
+            cts.Cancel();
+            return await tarea;
+        }
+
+        private async Task<String> ObtenerSaludos(
+            String nombre,
+            CancellationToken cancellationToken
+            )
+        {
+            using (var respuesta =
+                await httpClient.GetAsync($"{strApiURL}/saludos/delay/{nombre}",
+                cancellationToken))
+            {
+                respuesta.EnsureSuccessStatusCode();
+                //                      //Aqui voy a leer el contenido de la 
+                //                      //  respuesta http.
+                var saludo = await respuesta.Content.ReadAsStringAsync();
+                Console.WriteLine(saludo);
+                return saludo;
+            }
+        }
+
+        private async Task<String> ObtenerAdios(
+            String nombre,
+            CancellationToken cancellationToken
+            )
+        {
+            using (var respuesta =
+                await httpClient.GetAsync($"{strApiURL}/saludos/adios/{nombre}",
+                cancellationToken))
+            {
+                respuesta.EnsureSuccessStatusCode();
+                //                      //Aqui voy a leer el contenido de la 
+                //                      //  respuesta http.
+                var saludo = await respuesta.Content.ReadAsStringAsync();
+                Console.WriteLine(saludo);
+                return saludo;
+            }
         }
 
         private async Task ProcesarSaludos()
@@ -383,19 +437,6 @@ namespace UdemyConcurrencia
         private async Task Esperar()
         {
             await Task.Delay(TimeSpan.FromSeconds(0));
-        }
-
-        private async Task<String> ObtenerSaludos(String nombre)
-        {
-            using (var respuesta =
-                await httpClient.GetAsync($"{strApiURL}/saludos/delay/{nombre}"))
-            {
-                respuesta.EnsureSuccessStatusCode();
-                //                      //Aqui voy a leer el contenido de la 
-                //                      //  respuesta http.
-                var saludo = await respuesta.Content.ReadAsStringAsync();
-                return saludo;
-            }
         }
 
         private void label1_Click(object sender, EventArgs e)
