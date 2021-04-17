@@ -43,55 +43,54 @@ namespace UdemyConcurrencia
         private async void btnIniciar_Click(object sender, EventArgs e)
         {
             loadingGIF.Visible = true;
-            cancellationTokenSource = new CancellationTokenSource();
-            var token = cancellationTokenSource.Token;
+            var tarea = EvaluarValor(txtInput.Text);
 
-            var nombre = new String[] { "Cesar", "Luilly", "Ashly", "Mairam" };
+            Console.Write("Inicio");
+            Console.WriteLine($"Is completed : {tarea.IsCompleted}");
+            Console.WriteLine($"Is canceled : {tarea.IsCanceled}");
+            Console.WriteLine($"Is Faulted : {tarea.IsFaulted}");
 
-            //                          // ** FORMA 1. ** 
-            //var tareasHttp = nombre.Select(x => ObtenerSaludos(x, token));
+            try
+            {
+                await tarea;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exception: {ex.Message}");
+            }
 
-            ////                          //WhenAny devuelve la primer tarea que se
-            ////                          //  termina primero de un conjunto de tareas.
-            //var tarea = await Task.WhenAny(tareasHttp);
-            //var contenido = await tarea;
-            //Console.WriteLine(contenido.ToUpper());
-            ////                          //Con la siguiente instruccion estoy cancelando
-            ////                          //  las demas tareas.
-            //cancellationTokenSource.Cancel();
-
-
-
-            //                          // ** FORMA 2. ** 
-            //var tareasHTTP = nombre.Select(x => {
-            //    Func<CancellationToken, Task<String>> funcion = (ct) =>
-            //        ObtenerSaludos(x, ct);
-            //    return funcion;
-            //});
-
-            //var contenido = await EjecutarUno(tareasHTTP);
-            //Console.WriteLine(contenido.ToUpper());
-
-            //                          // ** FORMA 3. ** 
-            var contenido = await EjecutarUnoV2(
-                //                      //De esta forma o puedo enviar tantas 
-                //                      //  expresiones lamda como yo quiera.
-                //                      //Esto es bien comodo para cuando tenemos +
-                //                      //  distintas funciones que queremos ejecutar de 
-                //                      //  manera simultanea y solamente queremos obtener
-                //                      //  el resultado de una de ellas y cancelar las
-                //                      //  demas tareas.
-                //                      //Aqui estamos utilizando el patron de ejecutar 
-                //                      //  solamente una tarea y cancelar las demas 
-                //                      //  tareas.
-                (ct) => ObtenerSaludos("Cesar", ct),
-                (ct) => ObtenerAdios("Cesar", ct)
-                );
-
-            Console.WriteLine(contenido.ToUpper());
-            pgProcesamiento.Visible = false;
+            Console.WriteLine($"Fin");
+            Console.WriteLine($"");
             loadingGIF.Visible = false;
         }
+
+        public Task EvaluarValor(
+            //                          //Metodo que retorna una tarea.
+            String valor
+            )
+        {
+            var tcs = new TaskCompletionSource<object>
+                (TaskCreationOptions.RunContinuationsAsynchronously);
+            if (
+                valor == "1"
+                )
+            {
+                tcs.SetResult(null);
+            }
+            else if (
+                valor =="2"               
+                )
+            {
+                tcs.SetCanceled();
+            }
+            else
+            {
+                tcs.SetException(new ApplicationException($"Valor invalidad: {valor}"));
+            }
+            return tcs.Task;
+        }
+
+
 
         private async Task<T> EjecutarUno<T>(
             //                          //Tenemos un enumerable, es decir una 
