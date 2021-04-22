@@ -43,24 +43,26 @@ namespace UdemyConcurrencia
         private async void btnIniciar_Click(object sender, EventArgs e)
         {
             loadingGIF.Visible = true;
-            var tarea = EvaluarValor(txtInput.Text);
-
-            Console.Write("Inicio");
-            Console.WriteLine($"Is completed : {tarea.IsCompleted}");
-            Console.WriteLine($"Is canceled : {tarea.IsCanceled}");
-            Console.WriteLine($"Is Faulted : {tarea.IsFaulted}");
-
+            cancellationTokenSource = new CancellationTokenSource();
             try
             {
-                await tarea;
+                //                      //Task.Run esta creando una tarea a 
+                //                      //  partir de un delegado.
+                var resultado = await Task.Run( async () =>
+                {
+                    await Task.Delay(5000);
+                    return 7;
+                }).WithCancellation(cancellationTokenSource.Token);
+
+                Console.WriteLine(resultado);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Exception: {ex.Message}");
+                //                      //Lo que hacemos para cancelar una tarea,
+                //                      //  es lanzar una excepcion.
+                Console.WriteLine(ex.Message);
             }
 
-            Console.WriteLine($"Fin");
-            Console.WriteLine($"");
             loadingGIF.Visible = false;
         }
 
@@ -89,8 +91,6 @@ namespace UdemyConcurrencia
             }
             return tcs.Task;
         }
-
-
 
         private async Task<T> EjecutarUno<T>(
             //                          //Tenemos un enumerable, es decir una 
