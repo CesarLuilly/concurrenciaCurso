@@ -40,31 +40,80 @@ namespace UdemyConcurrencia
 
         }
 
-        private async void btnIniciar_Click(object sender, EventArgs e)
-        {
+        private async void btnIniciar_Click(object sender, EventArgs e) {
             loadingGIF.Visible = true;
-            cancellationTokenSource = new CancellationTokenSource();
-            try
-            {
-                //                      //Task.Run esta creando una tarea a 
-                //                      //  partir de un delegado.
-                var resultado = await Task.Run( async () =>
-                {
-                    await Task.Delay(5000);
-                    return 7;
-                }).WithCancellation(cancellationTokenSource.Token);
+            //var nombres = new List<String> { "Cesar", "Garcia" };
+            //foreach (var nombre in nombres)
+            //{
+            //}
 
-                Console.WriteLine(resultado);
-            }
-            catch (Exception ex)
-            {
-                //                      //Lo que hacemos para cancelar una tarea,
-                //                      //  es lanzar una excepcion.
-                Console.WriteLine(ex.Message);
-            }
+            //                          //Lo que hace aqui es que va al metodo, 
+            //                          //  el primer valor de yeld que encuentra, 
+            //                          //En la segunda iteracion lo que hace es ir 
+            //                          //  metodo y busca el segundo valor de yeld.
+            foreach (var nombre in GenerarNombres())
+            { Console.WriteLine(nombre); }
+
+            //                          //AsyncEnumerable es la version asincrona de 
+            //                          //  IEnumerable por lo tanto nos permite realizar 
+            //                          //  iteraciones desde operaciones asincronas.
+            //                          //Un lugar donde es importante utilizar esto, es 
+            //                          //  cuando estamos obteniendo los valores de un 
+            //                          //  servicio WEB de mannera que, en el metodo que 
+            //                          //  devuelve el iterable, estamos realizando 
+            //                          //  peticiones HTTP las cuales gradualmente nos 
+            //                          //  van devolviendo valores de webservices el cual
+            //                          //  nos permite sencillamente obtener todos los 
+            //                          //  valores en una sola peticion HTTP, si no que 
+            //                          //  nos exije que recorramos una paginacion.
+            await foreach (var nombre in GenerarNombresAsync())
+            { Console.WriteLine(nombre); }
 
             loadingGIF.Visible = false;
         }
+
+        private async IAsyncEnumerable<String> GenerarNombresAsync(
+            //                          /AsyncEnumerable es la version asincrona de IEnumerable.
+
+            )
+        {
+
+            //                          //Aqui lo que estamos haciendo es creando
+            //                          //  un IEnumerable, es decir que estamos creando
+            //                          //  tipo que es iterable, y eso significa que 
+            //                          //  yo puedo iterar este metodo generar nomres, es
+            //                          //  decir, el resultado del metodo generar nombres.
+
+            //                          //Aqui le estoy especificando como el primer elemento 
+            //                          //  de la lista.
+            yield return "CesarAsync";
+
+            await Task.Delay(3000);
+            //                          //Aqui le estoy especificando como el segudo elemento 
+            //                          //  de la lista.
+            yield return "GarciaAsync";
+        }
+
+        private IEnumerable<String> GenerarNombres(
+            //                          //Metod sincrono que devuelve el IEnumerable.
+            
+            ) {
+
+            //                          //Aqui lo que estamos haciendo es creando
+            //                          //  un IEnumerable, es decir que estamos creando
+            //                          //  tipo que es iterable, y eso significa que 
+            //                          //  yo puedo iterar este metodo generar nomres, es
+            //                          //  decir, el resultado del metodo generar nombres.
+
+            //                          //Aqui le estoy especificando como el primer elemento 
+            //                          //  de la lista.
+            yield return "Cesar";
+
+            //                          //Aqui le estoy especificando como el segudo elemento 
+            //                          //  de la lista.
+            yield return "Garcia";
+        }
+
 
         public Task EvaluarValor(
             //                          //Metodo que retorna una tarea.
