@@ -44,32 +44,37 @@ namespace UdemyConcurrencia
         private async void btnIniciar_Click(object sender, EventArgs e) {
             loadingGIF.Visible = true;
 
-            cancellationTokenSource = new CancellationTokenSource();
+            //                          //result lo que hace es bloquear el hilo
+            //                          //  actual esperando la respuesta que devuelve
+            //                          //  el metodo.
 
-            ////                          //Forma 2.
-            //try
-            //{
+            //                          //ANTIPATRON: SINCRONO DENTRO DE ASINCRONO.
+            //var valor = ObtenerValor().Result;
 
-            //    await foreach (var nombre in GenerarNombresAsync(cancellationTokenSource.Token))
-            //    { 
-            //        Console.WriteLine(nombre); 
-            //    }
-            //}
-            //catch (TaskCanceledException ex)
-            //{
-            //    Console.WriteLine("Operacion cancelada.");
-            //}
-            //finally
-            //{
-            //    cancellationTokenSource?.Dispose();
-            //}
+            //                          //Solucion 1 ** IDEAL **.
+            var valor = await ObtenerValor();
 
-            //                      °   //FORMA 3.
-            var nombreEnumerable = GenerarNombresAsync2();
-            await ProcesarNombres(nombreEnumerable);
+            //                          //Solucion 2 ** NO IDEAL ya que hace que la aplicacion
+            //                          //  se bloquee por un instante**.
+            //var valor = ObtenerValorNoIdeal().Result;
 
-            Console.WriteLine("Fin");
+            Console.WriteLine(valor);
             loadingGIF.Visible = false;
+        }
+
+        private async Task<string> ObtenerValorNoIdeal()
+        {
+            //                          //Aqui lo que hace es que despues de terminar esta linea
+            //                          //  de codigo, que la siguiente linea de codigo sea 
+            //                          //  ejecutada con un hilo diferente al que se empezo.
+            await Task.Delay(3000).ConfigureAwait(false);
+            return "Felipe";
+        }
+
+        private async Task<string> ObtenerValor()
+        {
+            await Task.Delay(3000);
+            return "Felipe";
         }
 
         private async Task ProcesarNombres(IAsyncEnumerable<String> nombresEnumerable)
