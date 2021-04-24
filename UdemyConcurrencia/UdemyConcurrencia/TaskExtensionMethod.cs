@@ -15,7 +15,7 @@ namespace UdemyConcurrencia
             //                          //Se le pone this para referirse que va a
             //                          //  retornar lo mismo que va a recibir como
             //                          //  parametro.
-            this Task<T> task, 
+            this Task<T> task,
             CancellationToken cancellationToken
             )
         {

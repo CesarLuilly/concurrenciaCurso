@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,39 +43,64 @@ namespace UdemyConcurrencia
 
         private async void btnIniciar_Click(object sender, EventArgs e) {
             loadingGIF.Visible = true;
-            //var nombres = new List<String> { "Cesar", "Garcia" };
-            //foreach (var nombre in nombres)
+
+            cancellationTokenSource = new CancellationTokenSource();
+
+            ////                          //Forma 2.
+            //try
             //{
+
+            //    await foreach (var nombre in GenerarNombresAsync(cancellationTokenSource.Token))
+            //    { 
+            //        Console.WriteLine(nombre); 
+            //    }
+            //}
+            //catch (TaskCanceledException ex)
+            //{
+            //    Console.WriteLine("Operacion cancelada.");
+            //}
+            //finally
+            //{
+            //    cancellationTokenSource?.Dispose();
             //}
 
-            //                          //Lo que hace aqui es que va al metodo, 
-            //                          //  el primer valor de yeld que encuentra, 
-            //                          //En la segunda iteracion lo que hace es ir 
-            //                          //  metodo y busca el segundo valor de yeld.
-            foreach (var nombre in GenerarNombres())
-            { Console.WriteLine(nombre); }
+            //                      °   //FORMA 3.
+            var nombreEnumerable = GenerarNombresAsync2();
+            await ProcesarNombres(nombreEnumerable);
 
-            //                          //AsyncEnumerable es la version asincrona de 
-            //                          //  IEnumerable por lo tanto nos permite realizar 
-            //                          //  iteraciones desde operaciones asincronas.
-            //                          //Un lugar donde es importante utilizar esto, es 
-            //                          //  cuando estamos obteniendo los valores de un 
-            //                          //  servicio WEB de mannera que, en el metodo que 
-            //                          //  devuelve el iterable, estamos realizando 
-            //                          //  peticiones HTTP las cuales gradualmente nos 
-            //                          //  van devolviendo valores de webservices el cual
-            //                          //  nos permite sencillamente obtener todos los 
-            //                          //  valores en una sola peticion HTTP, si no que 
-            //                          //  nos exije que recorramos una paginacion.
-            await foreach (var nombre in GenerarNombresAsync())
-            { Console.WriteLine(nombre); }
-
+            Console.WriteLine("Fin");
             loadingGIF.Visible = false;
         }
 
-        private async IAsyncEnumerable<String> GenerarNombresAsync(
+        private async Task ProcesarNombres(IAsyncEnumerable<String> nombresEnumerable)
+        {
+            cancellationTokenSource = new CancellationTokenSource();
+
+            try
+            {
+                await foreach (var nombre in 
+                    nombresEnumerable.WithCancellation(cancellationTokenSource.Token))
+                {
+                    Console.WriteLine(nombre);
+                }
+            }
+            catch (TaskCanceledException ex)
+            {
+                Console.WriteLine("Operacion cancelada.");
+            }
+            finally
+            {
+                cancellationTokenSource?.Dispose();
+            }
+        }
+
+        private async IAsyncEnumerable<String> GenerarNombresAsync2(
             //                          /AsyncEnumerable es la version asincrona de IEnumerable.
 
+            //                          //Con la siguiente instruccion o atributo decimos que
+            //                          //  el token que va a ser reconocido dentro de este metodo.
+            [EnumeratorCancellation]
+            CancellationToken token = default
             )
         {
 
@@ -88,10 +114,37 @@ namespace UdemyConcurrencia
             //                          //  de la lista.
             yield return "CesarAsync";
 
-            await Task.Delay(3000);
+            await Task.Delay(3000, token);
             //                          //Aqui le estoy especificando como el segudo elemento 
             //                          //  de la lista.
             yield return "GarciaAsync";
+            await Task.Delay(3000, token);
+            yield return "LuillyAsync";
+        }
+
+        private async IAsyncEnumerable<String> GenerarNombresAsync(
+            //                          /AsyncEnumerable es la version asincrona de IEnumerable.
+
+            CancellationToken token = default
+            )
+        {
+
+            //                          //Aqui lo que estamos haciendo es creando
+            //                          //  un IEnumerable, es decir que estamos creando
+            //                          //  tipo que es iterable, y eso significa que 
+            //                          //  yo puedo iterar este metodo generar nomres, es
+            //                          //  decir, el resultado del metodo generar nombres.
+
+            //                          //Aqui le estoy especificando como el primer elemento 
+            //                          //  de la lista.
+            yield return "CesarAsync";
+
+            await Task.Delay(3000, token);
+            //                          //Aqui le estoy especificando como el segudo elemento 
+            //                          //  de la lista.
+            yield return "GarciaAsync";
+            await Task.Delay(3000, token);
+            yield return "LuillyAsync";
         }
 
         private IEnumerable<String> GenerarNombres(
