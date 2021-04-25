@@ -44,21 +44,27 @@ namespace UdemyConcurrencia
         private async void btnIniciar_Click(object sender, EventArgs e) {
             loadingGIF.Visible = true;
 
-            //                          //result lo que hace es bloquear el hilo
-            //                          //  actual esperando la respuesta que devuelve
-            //                          //  el metodo.
+            //                          //Solucion 1.
+            var resultadoStartNew = await await Task.Factory.StartNew(async () => {
+                await Task.Delay(1000);
+                return 7;
+            });
 
-            //                          //ANTIPATRON: SINCRONO DENTRO DE ASINCRONO.
-            //var valor = ObtenerValor().Result;
+            //                          //Solucion 2.
+            var resultadoStartNew2 = await Task.Factory.StartNew(async () => {
+                await Task.Delay(1000);
+                return 7;
+            }).Unwrap();
 
-            //                          //Solucion 1 ** IDEAL **.
-            var valor = await ObtenerValor();
 
-            //                          //Solucion 2 ** NO IDEAL ya que hace que la aplicacion
-            //                          //  se bloquee por un instante**.
-            //var valor = ObtenerValorNoIdeal().Result;
+            var resultadoRun = await Task.Run(async () => {
+                await Task.Delay(1000);
+                return 7;
+            });
 
-            Console.WriteLine(valor);
+            Console.WriteLine($"Resultado StartNew : {resultadoStartNew}");
+            Console.WriteLine($"Resultado Task.RUn: {resultadoRun}");
+
             loadingGIF.Visible = false;
         }
 
