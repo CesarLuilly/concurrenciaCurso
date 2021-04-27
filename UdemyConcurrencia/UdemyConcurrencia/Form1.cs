@@ -45,46 +45,31 @@ namespace UdemyConcurrencia
         private async void btnIniciar_Click(object sender, EventArgs e) {
             loadingGIF.Visible = true;
 
-            var directorioActual = AppDomain.CurrentDomain.BaseDirectory;
-            var destinoBaseSecuencial = Path.Combine(directorioActual, @"Imagenes\resultado-secuencial");
-            var destinoBaseParalelo = Path.Combine(directorioActual, @"Imagenes\resultado-paralelo");
-            PrepararEjecucion(destinoBaseSecuencial, destinoBaseParalelo);
-
-            Console.WriteLine("Inicio");
-
-            var imagenes = ObtenerImagenes();
-
-            //                          //Parte secuencial.
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            foreach (var imagen in imagenes)
+            Console.WriteLine("Secuencial.");
+            //                          //Una caracteristica de este 
+            //                          //  es que podemos predecir el 
+            //                          //  orden en que las variables
+            //                          //  se van a imprimir.
+            for (int i = 0; i < 11; i++)
             {
-                await ProcesarImagen(destinoBaseSecuencial, imagen);
+                Console.WriteLine(i);
             }
 
-            var tiempoSecuencial = stopwatch.ElapsedMilliseconds / 1000.0;
-
-            Console.WriteLine("Secuencial - duración en segundos: {0}",
-                    tiempoSecuencial);
-
-            stopwatch.Restart();
-            //                          //Parte paralelo.
-
-            var TareasEnumerable = imagenes.Select(async imagen => 
-                await ProcesarImagen(destinoBaseParalelo, imagen));
-
-            await Task.WhenAll(TareasEnumerable);
-
-            var tiempoEnParalelo = stopwatch.ElapsedMilliseconds / 1000.0;
-
-            Console.WriteLine("Paralelo - duración en segundos: {0}",
-                    tiempoEnParalelo);
-
-            EscribirComparacion(tiempoSecuencial, tiempoEnParalelo);
-
-            Console.WriteLine("Fin");
-
+            Console.WriteLine("En paralelo.");
+            //                          //Sin embargo va a ver ocaciones
+            //                          //  que vamos a querer ejecutar 
+            //                          //  el bloque de codigo en 
+            //                          //  paralelo, es decir de manera
+            //                          //  simultanea.
+            //                          //Donde distintas operaciones se 
+            //                          //  van a ejecutar de manera 
+            //                          //  simultanea
+            //                          //ESTO ES IMPORTANTE PARA CUANDO
+            //                          //  TENEMOS UN CONJUNTO DE TAREAS
+            //                          //  QUE QUEREMOS EJECUTAR EL PARALELO
+            //                          //  PARA ASI TENER UNA POSIBLE 
+            //                          //  MEJORA DE VELOCIDAD.
+            Parallel.For(0, 11, i => Console.WriteLine(i));
 
             loadingGIF.Visible = false;
         }
