@@ -45,35 +45,58 @@ namespace UdemyConcurrencia
 
         private async void btnIniciar_Click(object sender, EventArgs e) {
             loadingGIF.Visible = true;
-            var columnasMatrizA = 1100;
-            var filas = 1000;
-            var columnasMatrizB = 1750;
-            var matrizA = Matrices.InicializarMatriz(filas, columnasMatrizA);
-            var matrizB = Matrices.InicializarMatriz(columnasMatrizA, columnasMatrizB);
-            var resultado = new double[filas, columnasMatrizB];
+
+            var directorioActual = AppDomain.CurrentDomain.BaseDirectory;
+            var carpetaOrigen = Path.Combine(directorioActual, @"Imagenes\resultado-secuencial");
+            var carpetaDestinoSecuencial = Path.Combine(directorioActual, @"Imagenes\foreach-secuencial");
+            var carpetaDestinoParalelo = Path.Combine(directorioActual, @"Imagenes\foreach-paralelo");
+            PrepararEjecucion(carpetaDestinoSecuencial, carpetaDestinoParalelo);
+
+            var archivos = Directory.EnumerateFiles(carpetaOrigen);
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            //                                              //Para no bloquear el Hilo UI utilizamos Task.Run. 
-            //                                              //  ya que la operacion va a tardar.
-            await Task.Run(() => Matrices.MultiplicarMatricesSecuencial(matrizA, matrizB, resultado));
+
+            // Algoritmo secuencial
+            foreach (var archivo in archivos)
+            {
+                VoltearImagen(archivo, carpetaDestinoSecuencial);
+            }
+
             var tiempoSecuencial = stopwatch.ElapsedMilliseconds / 1000.0;
 
             Console.WriteLine("Secuencial - duración en segundos: {0}",
                     tiempoSecuencial);
 
-            resultado = new double[filas, columnasMatrizB];
             stopwatch.Restart();
-            //                                              //Para no bloquear el Hilo UI utilizamos Task.Run.
-            //                                              //  ya que la operacion va a tardar.
-            await Task.Run(() => Matrices.MultiplicarMatricesParalelo(matrizA, matrizB, resultado));
+
+            // Algoritmo en paralelo
+            Parallel.ForEach(archivos, archivo =>
+            {
+                VoltearImagen(archivo, carpetaDestinoParalelo);
+            });
+
             var tiempoEnParalelo = stopwatch.ElapsedMilliseconds / 1000.0;
 
             Console.WriteLine("Paralelo - duración en segundos: {0}",
                    tiempoEnParalelo);
+
             EscribirComparacion(tiempoSecuencial, tiempoEnParalelo);
+
             Console.WriteLine("fin");
+
             loadingGIF.Visible = false;
+        }
+
+        private void VoltearImagen(string archivo, string carpetaDestino)
+        {
+            using (var image = new Bitmap(archivo))
+            {
+                image.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                var nombreArchivo = Path.GetFileName(archivo);
+                var destino = Path.Combine(carpetaDestino, nombreArchivo);
+                image.Save(destino);
+            }
         }
 
         private async Task ProcesarImagen(string directorio, Imagen imagen)
