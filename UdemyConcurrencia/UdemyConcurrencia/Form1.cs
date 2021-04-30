@@ -46,21 +46,48 @@ namespace UdemyConcurrencia
         private async void btnIniciar_Click(object sender, EventArgs e) {
             loadingGIF.Visible = true;
 
+            // Preparando código de voltear imágenes
             var directorioActual = AppDomain.CurrentDomain.BaseDirectory;
             var carpetaOrigen = Path.Combine(directorioActual, @"Imagenes\resultado-secuencial");
             var carpetaDestinoSecuencial = Path.Combine(directorioActual, @"Imagenes\foreach-secuencial");
             var carpetaDestinoParalelo = Path.Combine(directorioActual, @"Imagenes\foreach-paralelo");
             PrepararEjecucion(carpetaDestinoSecuencial, carpetaDestinoParalelo);
-
             var archivos = Directory.EnumerateFiles(carpetaOrigen);
+
+            // Preparando código de matrices
+            int columnasMatrizA = 208;
+            int filas = 1240;
+            int columnasMatrizB = 750;
+            var matrizA = Matrices.InicializarMatriz(filas, columnasMatrizA);
+            var matrizB = Matrices.InicializarMatriz(columnasMatrizA, columnasMatrizB);
+            var resultado = new double[filas, columnasMatrizB];
+
+            //                                  //Estoy encapsulando dos operaciones
+            //                                  //  distintas
+            Action multiplicarMatrices = () => 
+                Matrices.MultiplicarMatricesSecuencial(matrizA, matrizB, resultado);
+            Action voltearImagenes = 
+                //                              //Metodo anonimo.
+                () =>
+            {
+                foreach (var archivo in archivos)
+                {
+                    VoltearImagen(archivo, carpetaDestinoSecuencial);
+                }
+            };
+
+            //                                  //Creo mi arreglo de acciones.
+            Action[] acciones = new Action[] { multiplicarMatrices, voltearImagenes };
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            // Algoritmo secuencial
-            foreach (var archivo in archivos)
+            // TODO: Algoritmo secuencial
+            foreach (var accion in acciones)
             {
-                VoltearImagen(archivo, carpetaDestinoSecuencial);
+                //                              //Ejecuta primero la multiplicacion
+                //                              //  y despues voltea las imagenes.
+                accion();
             }
 
             var tiempoSecuencial = stopwatch.ElapsedMilliseconds / 1000.0;
@@ -68,13 +95,14 @@ namespace UdemyConcurrencia
             Console.WriteLine("Secuencial - duración en segundos: {0}",
                     tiempoSecuencial);
 
+            PrepararEjecucion(carpetaDestinoSecuencial, carpetaDestinoParalelo);
+
             stopwatch.Restart();
 
-            // Algoritmo en paralelo
-            Parallel.ForEach(archivos, archivo =>
-            {
-                VoltearImagen(archivo, carpetaDestinoParalelo);
-            });
+            // TODO: Algoritmo paralelo
+            //                                  //Las dos acciones las realiza
+            //                                  //  en paralelo.
+            Parallel.Invoke(acciones);
 
             var tiempoEnParalelo = stopwatch.ElapsedMilliseconds / 1000.0;
 
