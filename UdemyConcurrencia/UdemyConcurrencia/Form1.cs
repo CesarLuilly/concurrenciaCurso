@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Winforms;
 
 namespace UdemyConcurrencia
 {
@@ -44,33 +45,34 @@ namespace UdemyConcurrencia
 
         private async void btnIniciar_Click(object sender, EventArgs e) {
             loadingGIF.Visible = true;
+            var columnasMatrizA = 1100;
+            var filas = 1000;
+            var columnasMatrizB = 1750;
+            var matrizA = Matrices.InicializarMatriz(filas, columnasMatrizA);
+            var matrizB = Matrices.InicializarMatriz(columnasMatrizA, columnasMatrizB);
+            var resultado = new double[filas, columnasMatrizB];
 
-            Console.WriteLine("Secuencial.");
-            //                          //Una caracteristica de este 
-            //                          //  es que podemos predecir el 
-            //                          //  orden en que las variables
-            //                          //  se van a imprimir.
-            for (int i = 0; i < 11; i++)
-            {
-                Console.WriteLine(i);
-            }
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            //                                              //Para no bloquear el Hilo UI utilizamos Task.Run. 
+            //                                              //  ya que la operacion va a tardar.
+            await Task.Run(() => Matrices.MultiplicarMatricesSecuencial(matrizA, matrizB, resultado));
+            var tiempoSecuencial = stopwatch.ElapsedMilliseconds / 1000.0;
 
-            Console.WriteLine("En paralelo.");
-            //                          //Sin embargo va a ver ocaciones
-            //                          //  que vamos a querer ejecutar 
-            //                          //  el bloque de codigo en 
-            //                          //  paralelo, es decir de manera
-            //                          //  simultanea.
-            //                          //Donde distintas operaciones se 
-            //                          //  van a ejecutar de manera 
-            //                          //  simultanea
-            //                          //ESTO ES IMPORTANTE PARA CUANDO
-            //                          //  TENEMOS UN CONJUNTO DE TAREAS
-            //                          //  QUE QUEREMOS EJECUTAR EL PARALELO
-            //                          //  PARA ASI TENER UNA POSIBLE 
-            //                          //  MEJORA DE VELOCIDAD.
-            Parallel.For(0, 11, i => Console.WriteLine(i));
+            Console.WriteLine("Secuencial - duración en segundos: {0}",
+                    tiempoSecuencial);
 
+            resultado = new double[filas, columnasMatrizB];
+            stopwatch.Restart();
+            //                                              //Para no bloquear el Hilo UI utilizamos Task.Run.
+            //                                              //  ya que la operacion va a tardar.
+            await Task.Run(() => Matrices.MultiplicarMatricesParalelo(matrizA, matrizB, resultado));
+            var tiempoEnParalelo = stopwatch.ElapsedMilliseconds / 1000.0;
+
+            Console.WriteLine("Paralelo - duración en segundos: {0}",
+                   tiempoEnParalelo);
+            EscribirComparacion(tiempoSecuencial, tiempoEnParalelo);
+            Console.WriteLine("fin");
             loadingGIF.Visible = false;
         }
 
