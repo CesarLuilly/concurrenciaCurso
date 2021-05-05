@@ -47,17 +47,46 @@ namespace UdemyConcurrencia
             loadingGIF.Visible = true;
             Console.WriteLine("Inicio");
 
-            var valorSinInterlock = 0;
+            var valorIncrementado = 0;
+            var valorSumado = 0;
 
-            Parallel.For(0, 1000000, numero => valorSinInterlock++);
+            var mutex = new object();
+            Parallel.For(0, 10000, numero =>
+            {
+                /*
+                //                      //Tenemos dos operaciones atomicas.
+                //                      //  pero como un todo las dos operaciones
+                //                      //  no son atomicas.
 
-            var valorConInterlock = 0;
+                //                      //Lo que esta sucediendo aqui, es una
+                //                      //  condicion de carrera y por esa misma razon
+                //                      //  los resultados son inesperados para el add.
+                Interlocked.Increment(ref valorIncrementado);
+                Interlocked.Add(ref valorSumado, valorIncrementado);
+                */
 
-            Parallel.For(0, 1000000, numero => Interlocked.Increment(ref valorConInterlock));
+                //                      //Antes del lock, el codigo se va a ejecutar en 
+                //                      //  paralelo.
 
-            Console.WriteLine($"Sumatoria sin interlock {valorSinInterlock}");
+                lock (mutex)
+                {
+                    //                  //Es importante que creemos objetos especificos 
+                    //                  //  para realizar los loks, no es bueno que tengamos
+                    //                  //  varios objetos para varios locks ya que eso hace 
+                    //                  //  que la operacion sea mas peligrosa.
 
-            Console.WriteLine($"Sumatoria con interlock {valorConInterlock}");
+                    //                  //Este bloque de codigo solo va a ser ejecutado por 
+                    //                  //  hilo a la ves, se recomiendo que sea algo rapido.
+                    valorIncrementado++;
+                    valorSumado += valorIncrementado;
+                }
+
+                //                      //Despues del lock, el codigo se va a ejecutar en 
+                //                      //  paralelo.
+            });
+
+            Console.WriteLine($"Valor incrementado: {valorIncrementado}");
+            Console.WriteLine($"Valor Sumado: {valorSumado}");
 
             Console.WriteLine("fin");
 
