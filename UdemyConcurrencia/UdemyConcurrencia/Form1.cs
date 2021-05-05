@@ -47,14 +47,17 @@ namespace UdemyConcurrencia
             loadingGIF.Visible = true;
             Console.WriteLine("Inicio");
 
-            for (int i = 1; i <= 4/*Tengo 4 procesadores Logicos*/; i++)
-            {
-                //                      //Primero va a realizar la prueba 
-                //                      //  con 1 solo hilo hasta llegar 
-                //                      //  a 4 hilos.
-                await RealizarPruebaMatrices(i);
-            }
+            var valorSinInterlock = 0;
 
+            Parallel.For(0, 1000000, numero => valorSinInterlock++);
+
+            var valorConInterlock = 0;
+
+            Parallel.For(0, 1000000, numero => Interlocked.Increment(ref valorConInterlock));
+
+            Console.WriteLine($"Sumatoria sin interlock {valorSinInterlock}");
+
+            Console.WriteLine($"Sumatoria con interlock {valorConInterlock}");
 
             Console.WriteLine("fin");
 
