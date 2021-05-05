@@ -89,22 +89,26 @@ namespace Winforms
                                                CancellationToken token = default,
                                                int maximoGradoParalelismo = -1)
         {
-            int matACols = matA.GetLength(1);
-            int matBCols = matB.GetLength(1);
-            int matARows = matA.GetLength(0);
+            int matACols = matA.GetLength(1), matBCols = matB.GetLength(1), matARows = matA.GetLength(0);
 
-            Parallel.For(0, matARows, i =>
-            {
-                for (int j = 0; j < matBCols; j++)
+            Parallel.For(0, matARows,
+                new ParallelOptions()
                 {
-                    double temp = 0;
-                    for (int k = 0; k < matACols; k++)
+                    CancellationToken = token,
+                    MaxDegreeOfParallelism = maximoGradoParalelismo
+                },
+                i =>
+                {
+                    for (int j = 0; j < matBCols; j++)
                     {
-                        temp += matA[i, k] * matB[k, j];
+                        double temp = 0;
+                        for (int k = 0; k < matACols; k++)
+                        {
+                            temp += matA[i, k] * matB[k, j];
+                        }
+                        result[i, j] += temp;
                     }
-                    result[i, j] += temp;
-                }
-            });
+                });
         }
     }
 }

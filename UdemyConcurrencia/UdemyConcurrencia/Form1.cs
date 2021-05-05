@@ -45,76 +45,57 @@ namespace UdemyConcurrencia
 
         private async void btnIniciar_Click(object sender, EventArgs e) {
             loadingGIF.Visible = true;
+            Console.WriteLine("Inicio");
 
-            // Preparando código de voltear imágenes
-            var directorioActual = AppDomain.CurrentDomain.BaseDirectory;
-            var carpetaOrigen = Path.Combine(directorioActual, @"Imagenes\resultado-secuencial");
-            var carpetaDestinoSecuencial = Path.Combine(directorioActual, @"Imagenes\foreach-secuencial");
-            var carpetaDestinoParalelo = Path.Combine(directorioActual, @"Imagenes\foreach-paralelo");
-            PrepararEjecucion(carpetaDestinoSecuencial, carpetaDestinoParalelo);
-            var archivos = Directory.EnumerateFiles(carpetaOrigen);
-
-            // Preparando código de matrices
-            int columnasMatrizA = 208;
-            int filas = 1240;
-            int columnasMatrizB = 750;
-            var matrizA = Matrices.InicializarMatriz(filas, columnasMatrizA);
-            var matrizB = Matrices.InicializarMatriz(columnasMatrizA, columnasMatrizB);
-            var resultado = new double[filas, columnasMatrizB];
-
-            //                                  //Estoy encapsulando dos operaciones
-            //                                  //  distintas
-            Action multiplicarMatrices = () => 
-                Matrices.MultiplicarMatricesSecuencial(matrizA, matrizB, resultado);
-            Action voltearImagenes = 
-                //                              //Metodo anonimo.
-                () =>
+            for (int i = 1; i <= 4/*Tengo 4 procesadores Logicos*/; i++)
             {
-                foreach (var archivo in archivos)
-                {
-                    VoltearImagen(archivo, carpetaDestinoSecuencial);
-                }
-            };
-
-            //                                  //Creo mi arreglo de acciones.
-            Action[] acciones = new Action[] { multiplicarMatrices, voltearImagenes };
-
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            // TODO: Algoritmo secuencial
-            foreach (var accion in acciones)
-            {
-                //                              //Ejecuta primero la multiplicacion
-                //                              //  y despues voltea las imagenes.
-                accion();
+                //                      //Primero va a realizar la prueba 
+                //                      //  con 1 solo hilo hasta llegar 
+                //                      //  a 4 hilos.
+                await RealizarPruebaMatrices(i);
             }
 
-            var tiempoSecuencial = stopwatch.ElapsedMilliseconds / 1000.0;
-
-            Console.WriteLine("Secuencial - duración en segundos: {0}",
-                    tiempoSecuencial);
-
-            PrepararEjecucion(carpetaDestinoSecuencial, carpetaDestinoParalelo);
-
-            stopwatch.Restart();
-
-            // TODO: Algoritmo paralelo
-            //                                  //Las dos acciones las realiza
-            //                                  //  en paralelo.
-            Parallel.Invoke(acciones);
-
-            var tiempoEnParalelo = stopwatch.ElapsedMilliseconds / 1000.0;
-
-            Console.WriteLine("Paralelo - duración en segundos: {0}",
-                   tiempoEnParalelo);
-
-            EscribirComparacion(tiempoSecuencial, tiempoEnParalelo);
 
             Console.WriteLine("fin");
 
             loadingGIF.Visible = false;
         }
+
+        private async Task RealizarPruebaMatrices(
+            //                          //Le paso el numero de procesadores logicos
+            //                          //  nuestro computador.
+            int maximoGradoParalelismo
+            )
+        {
+            int colCount = 2508, rowCount = 1300, colCount2 = 1850;
+            double[,] m1 = Matrices.InicializarMatriz(rowCount, colCount);
+            double[,] m2 = Matrices.InicializarMatriz(colCount, colCount2);
+            double[,] result = new double[rowCount, colCount2];
+            cancellationTokenSource = new CancellationTokenSource();
+
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            try
+            {
+                await Task.Run(() => {
+                    Matrices.MultiplicarMatricesParalelo(m1, m2, result,
+                        cancellationTokenSource.Token, maximoGradoParalelismo);
+                });
+                Console.WriteLine($"Maximo grado: {maximoGradoParalelismo}; " +
+                    $"tiempo: {stopwatch.ElapsedMilliseconds / 1000.0}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Operación Cancelada");
+            }
+            finally
+            {
+                cancellationTokenSource.Dispose();
+            }
+        }
+
+
+
 
         private void VoltearImagen(string archivo, string carpetaDestino)
         {
