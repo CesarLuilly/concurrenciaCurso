@@ -47,24 +47,27 @@ namespace UdemyConcurrencia
             loadingGIF.Visible = true;
             Console.WriteLine("Inicio");
 
-            var matrices = Enumerable.Range(1, 500).Select(
-                   x => Matrices.InicializarMatriz(1000, 1000)).ToList(); ;
+            //                          //Esto es un query, aun no se ejecuta.
+            var queryParalelo = Enumerable.Range(1, 10).AsParallel()
+                .WithDegreeOfParallelism(2).Select(x => Matrices.InicializarMatriz(100, 100));
 
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
+            //                          //Con este lo que se hace es que esperamos a que todas 
+            //                          //  las matrices esten listas para procesarlas.
+            foreach (var matrix in queryParalelo)
+            {
+                Console.WriteLine(matrix[0, 0]);
+            }
 
-            var sumarMatricesSecuencia = matrices.Aggregate(Matrices.SumarMatricesSecuencial);
-            var tiempoSecuencia = stopWatch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine("For all.");
+            //                          //Con esto vamos a ver que la matriz se va a 
+            //                          //  de 2 en 2 ya que definimos un maximo
+            //                          //  grado de paralelismo de 2.
+            //                          //Es decir que a medida que las matrices 
+            //                          //  estan listas, las vamos procesando en ves 
+            //                          //  de esperar a que esten todas listas para 
+            //                          //  al final.
+            queryParalelo.ForAll(matrix => Console.WriteLine(matrix[0, 0]));
 
-            Console.WriteLine("Secuencial duracion en segundos : {0}", tiempoSecuencia);
-
-            stopWatch.Restart();
-            var sumarMatricesParalelo = matrices.AsParallel().Aggregate(Matrices.SumarMatricesSecuencial);
-            var tiempoParalelo = stopWatch.ElapsedMilliseconds / 1000.0;
-
-            Console.WriteLine("Paralelo duracion en segundos : {0}", tiempoParalelo);
-
-            EscribirComparacion(tiempoSecuencia, tiempoParalelo);
             Console.WriteLine("fin");
             loadingGIF.Visible = false;
         }

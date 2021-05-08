@@ -18,6 +18,8 @@ namespace Winforms
 
         public static double[,] InicializarMatriz(int filas, int columnas)
         {
+            Thread.Sleep(1000);
+
             if (random == null)
             {
                 var buffer = new byte[4];
