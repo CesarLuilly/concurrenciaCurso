@@ -47,49 +47,35 @@ namespace UdemyConcurrencia
             loadingGIF.Visible = true;
             Console.WriteLine("Inicio");
 
-            var valorIncrementado = 0;
-            var valorSumado = 0;
-
-            var mutex = new object();
-            Parallel.For(0, 10000, numero =>
+            var fuente = Enumerable.Range(1, 20);
+            var fuente2 = Enumerable.Range(1, 20);
+            var elementPares = fuente.AsParallel().Where(x => x % 2 == 0).ToList();
+            
+            foreach (var numero in elementPares)
             {
-                /*
-                //                      //Tenemos dos operaciones atomicas.
-                //                      //  pero como un todo las dos operaciones
-                //                      //  no son atomicas.
+                Console.WriteLine(numero);
+            }
 
-                //                      //Lo que esta sucediendo aqui, es una
-                //                      //  condicion de carrera y por esa misma razon
-                //                      //  los resultados son inesperados para el add.
-                Interlocked.Increment(ref valorIncrementado);
-                Interlocked.Add(ref valorSumado, valorIncrementado);
-                */
+            Console.WriteLine("En orden y con maximo grado de paralelismo.");
 
-                //                      //Antes del lock, el codigo se va a ejecutar en 
-                //                      //  paralelo.
-
-                lock (mutex)
-                {
-                    //                  //Es importante que creemos objetos especificos 
-                    //                  //  para realizar los loks, no es bueno que tengamos
-                    //                  //  varios objetos para varios locks ya que eso hace 
-                    //                  //  que la operacion sea mas peligrosa.
-
-                    //                  //Este bloque de codigo solo va a ser ejecutado por 
-                    //                  //  hilo a la ves, se recomiendo que sea algo rapido.
-                    valorIncrementado++;
-                    valorSumado += valorIncrementado;
-                }
-
-                //                      //Despues del lock, el codigo se va a ejecutar en 
-                //                      //  paralelo.
-            });
-
-            Console.WriteLine($"Valor incrementado: {valorIncrementado}");
-            Console.WriteLine($"Valor Sumado: {valorSumado}");
-
+            cancellationTokenSource = new CancellationTokenSource();
+            var elementParesEnOrden = fuente2
+                //                      //Le decimos que se va a procesar en paralelo.
+                .AsParallel()
+                //                      //Le decimos que se procese en paralelo y ademas
+                //                      //  que me conserve el orden.
+                .AsOrdered()
+                //                      //Definimos el maximo grado de paralelismo para
+                //                      //  para definir cuantos hilos utilizar.
+                .WithDegreeOfParallelism(2)
+                //                      //Le pasamos el token para cancelar la operacion.
+                .WithCancellation(cancellationTokenSource.Token)
+                .Where(x => x % 2 == 0).ToList();
+            foreach (var numero in elementParesEnOrden)
+            {
+                Console.WriteLine(numero);
+            }
             Console.WriteLine("fin");
-
             loadingGIF.Visible = false;
         }
 
