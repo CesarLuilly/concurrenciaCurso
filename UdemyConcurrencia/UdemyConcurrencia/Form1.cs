@@ -47,34 +47,24 @@ namespace UdemyConcurrencia
             loadingGIF.Visible = true;
             Console.WriteLine("Inicio");
 
-            var fuente = Enumerable.Range(1, 20);
-            var fuente2 = Enumerable.Range(1, 20);
-            var elementPares = fuente.AsParallel().Where(x => x % 2 == 0).ToList();
-            
-            foreach (var numero in elementPares)
-            {
-                Console.WriteLine(numero);
-            }
+            var matrices = Enumerable.Range(1, 500).Select(
+                   x => Matrices.InicializarMatriz(1000, 1000)).ToList(); ;
 
-            Console.WriteLine("En orden y con maximo grado de paralelismo.");
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
 
-            cancellationTokenSource = new CancellationTokenSource();
-            var elementParesEnOrden = fuente2
-                //                      //Le decimos que se va a procesar en paralelo.
-                .AsParallel()
-                //                      //Le decimos que se procese en paralelo y ademas
-                //                      //  que me conserve el orden.
-                .AsOrdered()
-                //                      //Definimos el maximo grado de paralelismo para
-                //                      //  para definir cuantos hilos utilizar.
-                .WithDegreeOfParallelism(2)
-                //                      //Le pasamos el token para cancelar la operacion.
-                .WithCancellation(cancellationTokenSource.Token)
-                .Where(x => x % 2 == 0).ToList();
-            foreach (var numero in elementParesEnOrden)
-            {
-                Console.WriteLine(numero);
-            }
+            var sumarMatricesSecuencia = matrices.Aggregate(Matrices.SumarMatricesSecuencial);
+            var tiempoSecuencia = stopWatch.ElapsedMilliseconds / 1000.0;
+
+            Console.WriteLine("Secuencial duracion en segundos : {0}", tiempoSecuencia);
+
+            stopWatch.Restart();
+            var sumarMatricesParalelo = matrices.AsParallel().Aggregate(Matrices.SumarMatricesSecuencial);
+            var tiempoParalelo = stopWatch.ElapsedMilliseconds / 1000.0;
+
+            Console.WriteLine("Paralelo duracion en segundos : {0}", tiempoParalelo);
+
+            EscribirComparacion(tiempoSecuencia, tiempoParalelo);
             Console.WriteLine("fin");
             loadingGIF.Visible = false;
         }
