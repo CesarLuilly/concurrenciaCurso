@@ -47,21 +47,57 @@ namespace UdemyConcurrencia
             loadingGIF.Visible = true;
 
             Console.WriteLine("inicio");
-            var stopwatch = new Stopwatch();
 
-            stopwatch.Start();
-            var matrices = Enumerable.Range(1, 1000).AsParallel().Select(x => Matrices.InicializarMatriz(750, 750)).ToList();
+            //                          //Instanciamos 2 objetos ya que vamos a tener 
+            //                          //  2 lock.
+            var mutexA = new object();
+            var mutexB = new object();
 
-            var tiempoParalelismo = stopwatch.ElapsedMilliseconds / 1000.0;
-            Console.WriteLine($"Paralelismo - Transcurridos {tiempoParalelismo} segundos");
+            //                          //Tenemos un TAsk.Run es decir que el codigo dentro
+            //                          //  del TaskRun va a correr en otro hilo.
+            var tarea1 = Task.Run(() =>
+            {
+                Parallel.For(1, 100000, i =>
+                {
+                    //                  //A
+                    lock (mutexA)
+                    {
+                        //              //B
+                        lock (mutexB)
+                        {
+                            var valor = i;
+                        }
+                    }
+                });
+            });
 
-            stopwatch.Restart();
-            var matrices2 = Enumerable.Range(1, 1000).AsParallel().Select(x => Matrices.InicializarMatrizSaturado(750, 750)).ToList();
+            var tarea2 = Task.Run(() =>
+            {
+                Parallel.For(1, 100000, i =>
+                {
+                    //                  //B
+                    lock (mutexB)
+                    {
+                        //              //A
+                        lock (mutexA)
+                        {
+                            var valor = i;
+                        }
+                    }
+                });
+            });
 
-            var tiempoSobreSaturacion = stopwatch.ElapsedMilliseconds / 1000.0;
+            //                          //Aqui tenemos un bloque mutuos, ya que
+            //                          //  como los task run se ejecutan en diferentes hilos
+            //                          //  llega en algun punto en donde en tantas iteraciones 
+            //                          //  los dos objetos van a estar bloqueados ya los hilos
+            //                          //  van a necesitar esperarse, y es aqui donde sucede
+            //                          //  el bloque mutuo.
+            //      
 
-            Console.WriteLine($"Sobre Saturación - Transcurridos {tiempoSobreSaturacion} segundos");
-            EscribirComparacion(tiempoParalelismo, tiempoSobreSaturacion);
+            await Task.WhenAll(tarea1, tarea2);
+
+            // Nunca llegaremos a escribir "fin".
 
             Console.WriteLine("fin");
 
