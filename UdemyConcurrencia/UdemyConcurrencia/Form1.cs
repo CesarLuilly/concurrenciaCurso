@@ -45,27 +45,26 @@ namespace UdemyConcurrencia
 
         private async void btnIniciar_Click(object sender, EventArgs e) {
             loadingGIF.Visible = true;
-            Console.WriteLine("Inicio");
 
-            var valorSinInterlocked = 0;
-            var valorConInterlocked = 0;
+            Console.WriteLine("inicio");
+            var stopwatch = new Stopwatch();
 
-            // Antipatrón: Condición de carrera
-            //                          //Se esta accediendo a la variable 
-            //                          //  desde distintos hilos, lo que que ocacion un 
-            //                          //  resultado inesperado.
-            Parallel.For(0, 1000000, numero => valorSinInterlocked++);
-            Console.WriteLine($"Sumatoria sin interlocked: {valorSinInterlocked}");
+            stopwatch.Start();
+            var matrices = Enumerable.Range(1, 1000).AsParallel().Select(x => Matrices.InicializarMatriz(750, 750)).ToList();
 
-            Console.WriteLine("Con interlock.");
-            // Solución: utilizar un mecanismo de sincronización
-            Parallel.For(0, 1000000, numero => Interlocked.Increment(ref valorConInterlocked));
+            var tiempoParalelismo = stopwatch.ElapsedMilliseconds / 1000.0;
+            Console.WriteLine($"Paralelismo - Transcurridos {tiempoParalelismo} segundos");
 
-            Console.WriteLine($"Sumatoria con interlocked: {valorConInterlocked}");
+            stopwatch.Restart();
+            var matrices2 = Enumerable.Range(1, 1000).AsParallel().Select(x => Matrices.InicializarMatrizSaturado(750, 750)).ToList();
 
-            Console.WriteLine("fin");
+            var tiempoSobreSaturacion = stopwatch.ElapsedMilliseconds / 1000.0;
+
+            Console.WriteLine($"Sobre Saturación - Transcurridos {tiempoSobreSaturacion} segundos");
+            EscribirComparacion(tiempoParalelismo, tiempoSobreSaturacion);
 
             Console.WriteLine("fin");
+
             loadingGIF.Visible = false;
         }
 

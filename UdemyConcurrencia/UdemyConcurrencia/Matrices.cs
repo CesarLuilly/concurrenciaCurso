@@ -18,7 +18,7 @@ namespace Winforms
 
         public static double[,] InicializarMatriz(int filas, int columnas)
         {
-            Thread.Sleep(1000);
+            //Thread.Sleep(1000);
 
             if (random == null)
             {
@@ -36,6 +36,27 @@ namespace Winforms
                     matriz[i, j] = random.Next(100);
                 }
             }
+
+            return matriz;
+        }
+
+        public static double[,] InicializarMatrizSaturado(int filas, int columnas)
+        {
+            double[,] matriz = new double[filas, columnas];
+
+            Parallel.For(0, filas, i => {
+                Parallel.For(0, columnas, j => {
+
+                    if (random == null)
+                    {
+                        var buffer = new byte[4];
+                        rng.GetBytes(buffer);
+                        random = new Random(BitConverter.ToInt32(buffer, 0));
+                    }
+
+                    matriz[i, j] = random.Next(100);
+                });
+            });
 
             return matriz;
         }
