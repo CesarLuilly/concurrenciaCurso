@@ -47,26 +47,30 @@ namespace UdemyConcurrencia
             loadingGIF.Visible = true;
             Console.WriteLine("Inicio");
 
-            //                          //Esto es un query, aun no se ejecuta.
-            var queryParalelo = Enumerable.Range(1, 10).AsParallel()
-                .WithDegreeOfParallelism(2).Select(x => Matrices.InicializarMatriz(100, 100));
+            var stopWatch = new Stopwatch();
+            var max = int.MaxValue / 3;
+            var numeros = Enumerable.Range(0, max);
+            stopWatch.Start();
 
-            //                          //Con este lo que se hace es que esperamos a que todas 
-            //                          //  las matrices esten listas para procesarlas.
-            foreach (var matrix in queryParalelo)
-            {
-                Console.WriteLine(matrix[0, 0]);
-            }
+            await Task.Run(() => {
+                foreach (var numero in numeros)
+                {
+                    //                  //El trabajo es muy sencillo que no tiene
+                    //                  //  no tiene sentido utilizar paralelismo.
+                    var resultado = numero + numero;
+                }
+            });
 
-            Console.WriteLine("For all.");
-            //                          //Con esto vamos a ver que la matriz se va a 
-            //                          //  de 2 en 2 ya que definimos un maximo
-            //                          //  grado de paralelismo de 2.
-            //                          //Es decir que a medida que las matrices 
-            //                          //  estan listas, las vamos procesando en ves 
-            //                          //  de esperar a que esten todas listas para 
-            //                          //  al final.
-            queryParalelo.ForAll(matrix => Console.WriteLine(matrix[0, 0]));
+            Console.WriteLine("Secuencial - duracion en segundos: {0}",
+                stopWatch.ElapsedMilliseconds / 1000.0);
+            stopWatch.Restart();
+
+            await Task.Run(() => {
+                Parallel.ForEach(numeros, numero => { var resultado = numero + numero; });
+            });
+
+            Console.WriteLine("Paralelo - duracion en segundos: {0}",
+                stopWatch.ElapsedMilliseconds / 1000.0);
 
             Console.WriteLine("fin");
             loadingGIF.Visible = false;
