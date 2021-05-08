@@ -47,30 +47,23 @@ namespace UdemyConcurrencia
             loadingGIF.Visible = true;
             Console.WriteLine("Inicio");
 
-            var stopWatch = new Stopwatch();
-            var max = int.MaxValue / 3;
-            var numeros = Enumerable.Range(0, max);
-            stopWatch.Start();
+            var valorSinInterlocked = 0;
+            var valorConInterlocked = 0;
 
-            await Task.Run(() => {
-                foreach (var numero in numeros)
-                {
-                    //                  //El trabajo es muy sencillo que no tiene
-                    //                  //  no tiene sentido utilizar paralelismo.
-                    var resultado = numero + numero;
-                }
-            });
+            // Antipatrón: Condición de carrera
+            //                          //Se esta accediendo a la variable 
+            //                          //  desde distintos hilos, lo que que ocacion un 
+            //                          //  resultado inesperado.
+            Parallel.For(0, 1000000, numero => valorSinInterlocked++);
+            Console.WriteLine($"Sumatoria sin interlocked: {valorSinInterlocked}");
 
-            Console.WriteLine("Secuencial - duracion en segundos: {0}",
-                stopWatch.ElapsedMilliseconds / 1000.0);
-            stopWatch.Restart();
+            Console.WriteLine("Con interlock.");
+            // Solución: utilizar un mecanismo de sincronización
+            Parallel.For(0, 1000000, numero => Interlocked.Increment(ref valorConInterlocked));
 
-            await Task.Run(() => {
-                Parallel.ForEach(numeros, numero => { var resultado = numero + numero; });
-            });
+            Console.WriteLine($"Sumatoria con interlocked: {valorConInterlocked}");
 
-            Console.WriteLine("Paralelo - duracion en segundos: {0}",
-                stopWatch.ElapsedMilliseconds / 1000.0);
+            Console.WriteLine("fin");
 
             Console.WriteLine("fin");
             loadingGIF.Visible = false;
